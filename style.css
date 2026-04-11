@@ -1,0 +1,1381 @@
+/* Use border-box to make sizing and padding predictable */
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+/* colour variables allow us to switch theme easily */
+:root {
+    --bg-color: #ebfff4;
+    --text-color: black;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px; /* keep content away from the left edge */
+    font-family: Arial, sans-serif;
+}
+
+/* dark theme — apply by adding .dark on the <body> */
+body.dark {
+    --bg-color: #363636;
+    --text-color: white;
+}
+
+/* theme toggle button */
+#theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+h1 {
+	color: #ff0000;
+	text-align: center;
+	font-family: Verdana, sans-serif;
+}
+
+header {
+	position: sticky;
+	top: 0;
+	background-color: var(--bg-color);
+	z-index: 100;
+}
+
+h2 {
+	color: #ff6701;
+	text-align: center;
+	font-family: Verdana, sans-serif;
+}
+
+h2 a {
+	color: inherit;
+	text-decoration: none;
+}
+
+h3 {
+	color: #ffc000;
+	text-align: center;
+	font-family: Verdana, sans-serif;
+}
+
+h4 {
+	color: #008000;
+	text-align: center;
+	font-family: Verdana, sans-serif;
+}
+
+p {
+	font-size: 20px;
+}
+
+ol, ul {
+	font-size: 18px;
+}
+
+.centered-text {
+	text-align: center;
+}
+
+.button {
+	display: inline-flex;
+ 	align-items: center;
+ 	gap: 8px;
+ 	margin: 5px;
+ 	padding: 6px 10px;
+ 	background-color: #e53935;
+ 	border: 2px solid #ffffff;
+ 	border-radius: 8px;
+	transform: scale(1);
+	transition: transform 0.15s ease, background-color 0.15s ease;
+	box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+
+}
+/* Ensure images inside the button sit nicely */
+.button img {
+ 	height: 20px;
+ 	width: auto;
+ 	display: block;
+}
+.button a {
+ 	color: white;
+ 	font-size: 16pt;
+ 	font-family: Verdana, sans-serif;
+ 	text-decoration: none;
+}
+/* Preferred: change parent background based on whether the button contains an external link */
+.button:has(a[href^="http"]):hover {
+	background-color: #ffc000; /* green for external */
+	transform: scale(1.05);
+}
+.button:has(a:not([href^="http"])):hover {
+	background-color: orange; /* internal/subpage */
+	transform: scale(1.05);
+}
+/* JS-driven fallback classes for older browsers to avoid text-only highlighting */
+.button.hover-external {
+	background-color: #ffc000;
+	transform: scale(1.05);
+}
+.button.hover-internal {
+	background-color: orange;
+	transform: scale(1.05);
+}
+
+/* dark mode button styling */
+body.dark .button {
+	border-color: #000000;
+}
+
+.social-row {
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.button.social {
+	padding: 14px 18px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 30pt;
+	cursor: pointer;
+	background-color: white;
+	border-color: #e53935;
+	border-width: 4px;
+}
+
+.button.social img {
+	height: 64px;
+	width: auto;
+}
+
+.button.social a {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+
+.button.social:has(a[href^="http"]):hover {
+	background-color: #F9D0CF;
+	transform: scale(1.05);
+}
+
+.logo-container {
+	text-align: center;
+	padding-top: 20px;	
+	width: 100%;
+}
+.main-logo {
+	max-width: 725px;
+	width: 100%;
+	height: auto;
+	display: block;
+	margin: 0 auto;
+}
+
+.image-container {
+	text-align: center;
+	margin: 20px auto;
+	width: 100%;
+	max-width: 100%;
+}
+
+.image-container img {
+	max-width: 100%;
+	height: auto;
+	display: inline-block;
+}
+
+/* allow an image to sit inline with text */
+.image-container.left {
+	float: left;
+	width: auto;
+	margin: 0 20px 20px 0; /* space between image and paragraph */
+	text-align: left;
+}
+
+.image-container.right {
+	float: right;
+	width: auto;
+	margin: 0 0 20px 20px; /* space between image and paragraph */
+	text-align: right;
+}
+
+/* clear any floated children so sections expand to contain them */
+section {
+	overflow: auto;
+}
+
+/* table styling - text colour follows theme variable */
+table, th, td {
+    color: var(--text-color);
+}
+
+/* optional borders to make tables readable in both themes */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+}
+th, td {
+    padding: 4px;
+}
+
+body.dark th, body.dark td {
+    border-color: #666;
+}
+.video-container {
+	text-align: center;
+	margin: 20px 0;
+}
+/* Navigation bar styles */
+.navbar {
+	background: transparent;
+	padding: 8px 0;
+}
+.navbar ul {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+	align-items: center;
+	padding: 0;
+	margin: 8px 0 20px 0;
+	flex-wrap: wrap;
+}
+.navbar li {
+	list-style: none;
+}
+.navbar a {
+	display: inline-block;
+	background: #e53935;
+	color: #fff;
+	padding: 10px 14px;
+	border-radius: 8px;
+	text-decoration: none;
+	font-weight: 600;
+	box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+}
+.navbar a:hover {
+	background: orange;
+    cursor: pointer;
+	transform: scale(1.05);
+	transition: 0.15s;
+}
+
+/* highlight current page */
+.navbar a.active {
+    background: white;
+    color: black;
+ 	border: 2px solid #e53935;
+}
+.navbar a.active:hover {
+    background: white;
+    color: black;
+ 	border: 2px solid #e53935;
+    transform: scale(1.05);
+    transition: 0.15s;
+}
+
+@media (max-width: 520px) {
+	.navbar a {
+		padding: 8px 10px;
+		font-size: 14px;
+	}
+}
+
+/* search bar styling – generic framework for any page */
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 20px auto;
+    width: 100%;
+    max-width: 600px;
+}
+.search-container input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.15s ease;
+}
+
+.search-container input:focus {
+    outline: none;
+    border-color: red;
+}
+
+.search-container select {
+    padding: 8px 10px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.search-container select:focus {
+    outline: none;
+    border-color: red;
+}
+
+body.dark .search-container input {
+    background-color: white;
+    color: black;
+    border-color: #ccc;
+}
+
+body.dark .search-container input:focus {
+    border-color: red;
+}
+
+body.dark .search-container select {
+    background-color: white;
+    color: black;
+    border-color: #ccc;
+}
+
+body.dark .search-container select:focus {
+    border-color: red;
+}
+
+/* highlighting for search results */
+mark {
+    background-color: #ffff00;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+body.dark mark {
+    background-color: #ffaa00;
+    color: #000;
+}
+
+/* no results message */
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 16px;
+}
+
+.small-text {
+	text-align: center;
+	color: #999;
+	font-size: 8px;
+}
+body.dark .no-results {
+    color: #aaa;
+}
+
+/* tags are for search only; hide visually but keep in DOM */
+.tags {
+    display: none;
+}
+
+.youtube-box {
+  background-color: #f9f9f9; /* Light grey background to make the red pop */
+  padding: 15px;
+  border-radius: 10px;
+  display: inline-block; /* Keeps the box tight around the button */
+  margin: 20px 0;
+  border: 1px solid #ddd;
+}
+
+/* If you are in Dark Mode, use this instead: */
+.dark-mode .youtube-box {
+  background-color: #222;
+  border: 1px solid #444;
+} 
+
+/* Style the box */
+.collapse {
+  background-color: #EBFFF4;
+  color: #ff0000;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  font-size: 24px;
+  border: 1px solid red;
+}
+
+/* Style the clickable heading */
+.collapse summary {
+  padding: 15px;
+  cursor: pointer;
+  font-weight: bold;
+  list-style: none; /* Removes the default arrow in some browsers */
+  background-color: white;
+}
+
+/* Change color on hover */
+.collapse summary:hover {
+  background-color: #D5FFE8;
+}
+
+/* Style the hidden content */
+.collapse .content {
+  padding: 15px;
+  border-top: 1px solid #ff0000;
+  line-height: 1.6;
+  color: black;
+  font-size: 20px;
+}
+
+/* Dark Mode Version */
+.dark .collapse {
+  background-color: #363636; /* Deep charcoal */
+  color: red;          /* Brighter red for better contrast on dark */
+  border: 1px solid red;
+}
+
+.dark .collapse summary {
+  background-color: black;
+}
+
+.dark .collapse summary:hover {
+  background-color: #262626; /* Slightly lighter on hover */
+}
+
+.dark .collapse .content {
+  border-top: 1px solid red;
+  color: #e0e0e0;           /* Off-white for easy reading */
+  background-color: #363636;
+}
+
+footer {
+	margin: 40px -20px -20px;
+}
+
+.footer-stripe {
+	width: 100%;
+	min-height: 30px;
+	padding: 0 20px;
+	text-align: center;
+	font-family: Verdana, sans-serif;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.footer-stripe p,
+.footer-stripe small,
+.footer-stripe span {
+	margin: 0;
+	display: block;
+}
+
+.footer-stripe a {
+	color: inherit;
+}
+
+.footer-stripe-red {
+	background-color: #f00;
+	color: white;
+}
+
+.footer-stripe-orange {
+	background-color: #ffc000;
+	color: black;
+}
+
+.footer-stripe-yellow {
+	background-color: #ff0;
+	color: black;
+}
+
+.footer-stripe-green {
+	background-color: #00b050;
+	color: white;
+}
+
+/* ── News page: date and tag styles ── */
+
+/* Row that holds date + tags on one line, centered */
+.news-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -6px 0 14px 0;
+}
+
+/* Publication date — muted, small */
+.date {
+    font-size: 14px;
+    color: #888;
+    text-align: center;
+}
+
+body.dark .date {
+    color: #aaa;
+}
+
+/* Tag bubble row */
+.visible-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.visible-tags .tag,
+.tag {
+    display: inline-block;
+    background-color: #e53935;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-family: Arial, sans-serif;
+    letter-spacing: 0.02em;
+}
+
+
+/* ── Article anchor / copy-link button ── */
+.article-link-btn {
+    display: block;
+    margin: -8px auto 14px auto;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    color: #888;
+    background: transparent;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    text-align: center;
+}
+
+.article-link-btn:hover {
+    color: #e53935;
+    border-color: #e53935;
+    background: rgba(229, 57, 53, 0.06);
+}
+
+.article-link-btn--copied {
+    color: #2e7d32 !important;
+    border-color: #2e7d32 !important;
+    background: rgba(46, 125, 50, 0.08) !important;
+}
+
+body.dark .article-link-btn {
+    color: #aaa;
+    border-color: #555;
+}
+
+body.dark .article-link-btn:hover {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.08);
+}
+
+body.dark .article-link-btn--copied {
+    color: #66bb6a !important;
+    border-color: #66bb6a !important;
+    background: rgba(102, 187, 106, 0.1) !important;
+}
+/* =========================================================================
+   Jamex Account button (injected into header by common.js)
+   Sits to the left of the theme toggle.
+   ========================================================================= */
+
+#account-btn {
+    position: absolute;
+    top: 20px;
+    right: 64px; /* leave room for theme-toggle at right:20px (24px icon + 20px gap) */
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    padding: 5px 12px;
+    border: 2px solid #e53935;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#account-btn:hover {
+    background: #e53935;
+    color: #fff;
+}
+
+#account-btn.account-btn--signed-in {
+    border-color: #2e7d32;
+    color: #2e7d32;
+}
+
+#account-btn.account-btn--signed-in:hover {
+    background: #2e7d32;
+    color: #fff;
+}
+
+body.dark #account-btn {
+    color: var(--text-color);
+}
+
+body.dark #account-btn.account-btn--signed-in {
+    color: #66bb6a;
+    border-color: #66bb6a;
+}
+
+body.dark #account-btn.account-btn--signed-in:hover {
+    background: #66bb6a;
+    color: #000;
+}
+
+/* =========================================================================
+   Jamex Account modal
+   ========================================================================= */
+
+.jx-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: jx-fade-in 0.15s ease;
+    will-change: opacity;
+    backface-visibility: hidden;
+}
+
+.jx-modal-overlay.jx-modal-closing {
+    animation: jx-fade-out 0.2s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes jx-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes jx-fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+.jx-modal-box {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 2px solid #e53935;
+    border-radius: 12px;
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    animation: jx-slide-in 0.15s ease;
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+@keyframes jx-slide-in {
+    from { transform: translateY(-16px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+
+.jx-modal-title {
+    color: #e53935 !important;
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    text-align: center;
+}
+
+.jx-modal-greeting,
+.jx-modal-sub {
+    font-size: 16px;
+    text-align: center;
+    margin: 0 0 16px 0;
+}
+
+.jx-modal-input {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 15px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: white;
+    color: black;
+    transition: border-color 0.15s;
+}
+
+.jx-modal-input:focus {
+    outline: none;
+    border-color: #e53935;
+}
+
+.jx-password-field {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.jx-password-field .jx-modal-input {
+    margin-bottom: 0;
+}
+
+.jx-password-toggle {
+    flex: 0 0 auto;
+    min-width: 62px;
+    padding: 0 12px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.jx-password-toggle:hover {
+    border-color: #999;
+    background: rgba(0,0,0,0.05);
+}
+
+.jx-modal-hint {
+    font-size: 12px;
+    color: #888;
+    margin: 0 0 8px 0;
+}
+
+.jx-modal-hint--center {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.jx-modal-error {
+    font-size: 13px;
+    color: #e53935;
+    margin: 0 0 8px 0;
+}
+
+.jx-modal-success {
+    font-size: 13px;
+    color: #2e7d32;
+    margin: 0 0 8px 0;
+}
+
+.jx-modal-link-btn {
+    margin: 4px auto 0 auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #e53935;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: block;
+}
+
+.jx-modal-link-btn:hover {
+    text-decoration: underline;
+}
+
+.jx-forgot-panel {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(229, 57, 53, 0.25);
+    border-radius: 8px;
+    background: rgba(229, 57, 53, 0.04);
+}
+
+.jx-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 18px;
+}
+
+/* Shared button styles for modal buttons */
+.jx-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.jx-btn:hover {
+    transform: scale(1.04);
+}
+
+.jx-btn--primary {
+    background: #e53935;
+    color: #fff;
+    border-color: #e53935;
+}
+
+.jx-btn--primary:hover {
+    background: #c62828;
+    border-color: #c62828;
+}
+
+.jx-btn--secondary {
+    background: transparent;
+    color: var(--text-color);
+    border-color: #ccc;
+}
+
+.jx-btn--secondary:hover {
+    border-color: #999;
+    background: rgba(0,0,0,0.05);
+}
+
+.jx-btn--danger {
+    background: transparent;
+    color: #e53935;
+    border-color: #e53935;
+}
+
+.jx-btn--danger:hover {
+    background: #e53935;
+    color: #fff;
+}
+
+/* =========================================================================
+   Likes & Comments interaction bar
+   ========================================================================= */
+
+.jx-interaction-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0 2px 0;
+    border-top: 1px solid rgba(128,128,128,0.2);
+    margin-top: 16px;
+}
+
+/* Like button */
+.jx-like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    border: 2px solid #ccc;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.jx-like-btn:hover {
+    border-color: #e53935;
+    color: #e53935;
+    transform: scale(1.05);
+}
+
+.jx-like-btn--active {
+    background: #ffeaea;
+    border-color: #e53935;
+    color: #e53935;
+}
+
+body.dark .jx-like-btn--active {
+    background: rgba(229, 57, 53, 0.15);
+}
+
+.jx-like-icon {
+    font-size: 15px;
+}
+
+.jx-like-count {
+    font-size: 13px;
+}
+
+/* Comment toggle button */
+.jx-comment-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    border: 2px solid #ccc;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, transform 0.1s;
+}
+
+.jx-comment-toggle-btn:hover {
+    border-color: #ff6701;
+    color: #ff6701;
+    transform: scale(1.05);
+}
+
+/* =========================================================================
+   Comments section
+   ========================================================================= */
+
+.jx-comments-section {
+    margin-top: 10px;
+    border-top: 1px solid rgba(128,128,128,0.15);
+    padding-top: 14px;
+}
+
+.jx-comment-list {
+    margin-bottom: 14px;
+}
+
+.jx-no-comments {
+    font-size: 14px;
+    color: #888;
+    text-align: center;
+    margin: 4px 0 10px 0;
+}
+
+body.dark .jx-no-comments {
+    color: #aaa;
+}
+
+.jx-comment-item {
+    padding: 10px 12px;
+    background: rgba(128,128,128,0.07);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+body.dark .jx-comment-item {
+    background: rgba(255,255,255,0.06);
+}
+
+.jx-comment-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.jx-comment-username {
+    font-weight: 700;
+    font-size: 14px;
+    color: #e53935;
+}
+
+.jx-comment-time {
+    font-size: 12px;
+    color: #888;
+}
+
+body.dark .jx-comment-time {
+    color: #aaa;
+}
+
+.jx-comment-text {
+    font-size: 15px !important;
+    margin: 0;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.jx-comment-delete {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 12px;
+    padding: 2px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.jx-comment-delete:hover {
+    color: #e53935;
+    border-color: #e53935;
+    background: rgba(229, 57, 53, 0.07);
+}
+
+/* Comment form */
+.jx-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.jx-comment-signin-prompt {
+    font-size: 14px;
+    color: #888;
+    text-align: center;
+    margin: 0;
+}
+
+body.dark .jx-comment-signin-prompt {
+    color: #aaa;
+}
+
+.jx-comment-signin-prompt a {
+    color: #e53935;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.jx-comment-signin-prompt a:hover {
+    text-decoration: underline;
+}
+
+.jx-comment-input {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    color: black;
+    resize: vertical;
+    transition: border-color 0.15s;
+}
+
+.jx-comment-input:focus {
+    outline: none;
+    border-color: #e53935;
+}
+
+.jx-comment-submit {
+    align-self: flex-end;
+}
+
+/* Label for modal form fields */
+.jx-modal-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 12px 0 4px 0;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* =========================================================================
+   Games page
+   ========================================================================= */
+
+.games-hero {
+    padding: 12px 0 10px;
+}
+
+.games-hero-copy {
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.games-launcher {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin: 24px auto 36px;
+    max-width: 1200px;
+}
+
+.game-card,
+.game-panel {
+    background: rgba(255, 255, 255, 0.82);
+    border: 2px solid rgba(229, 57, 53, 0.15);
+    border-radius: 20px;
+    box-shadow: 0 18px 36px rgba(31, 41, 55, 0.08);
+}
+
+body.dark .game-card,
+body.dark .game-panel {
+    background: rgba(25, 25, 25, 0.92);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.26);
+}
+
+.game-card {
+    padding: 20px;
+    text-align: center;
+}
+
+.game-card h3,
+.game-panel h2 {
+    margin-top: 0;
+}
+
+.game-card p,
+.game-panel p,
+.score-panel,
+.game-status,
+.game-substatus {
+    font-size: 16px;
+}
+
+.game-card-media {
+    width: 92px;
+    height: 92px;
+    margin: 0 auto 12px;
+    display: grid;
+    place-items: center;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(229, 57, 53, 0.1), rgba(255, 192, 0, 0.18));
+}
+
+.game-card-media img {
+    width: 78px;
+    height: 78px;
+}
+
+.game-jump-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #e53935;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.game-jump-btn:hover {
+    background: #ff6701;
+}
+
+.game-panel {
+    max-width: 1200px;
+    margin: 0 auto 28px;
+    padding: 24px;
+}
+
+.game-panel-active {
+    border-color: rgba(255, 103, 1, 0.45);
+    box-shadow: 0 20px 38px rgba(255, 103, 1, 0.16);
+}
+
+.game-panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.score-panel {
+    min-width: 220px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(229, 57, 53, 0.08);
+    border: 1px solid rgba(229, 57, 53, 0.15);
+}
+
+body.dark .score-panel {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.save-hint {
+    margin-top: 10px;
+    color: #666;
+}
+
+body.dark .save-hint {
+    color: #bbb;
+}
+
+.game-stage {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.game-side-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 220px;
+    flex: 1;
+}
+
+.game-status {
+    margin: 0;
+    font-weight: 600;
+}
+
+.game-substatus {
+    margin: 0;
+}
+
+#snake-canvas,
+#tetris-canvas {
+    background: #0f172a;
+    border-radius: 18px;
+    border: 4px solid rgba(255, 255, 255, 0.16);
+    max-width: 100%;
+    height: auto;
+}
+
+.minesweeper-stage {
+    align-items: stretch;
+}
+
+.minesweeper-board {
+    display: grid;
+    gap: 4px;
+    width: min(100%, 420px);
+    background: #94a3b8;
+    padding: 8px;
+    border-radius: 16px;
+}
+
+.mine-cell {
+    aspect-ratio: 1;
+    border: none;
+    border-radius: 10px;
+    background: #e2e8f0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.mine-cell:hover {
+    background: #cbd5e1;
+}
+
+.mine-cell-revealed {
+    background: #f8fafc;
+}
+
+.mine-cell-flagged {
+    background: #fee2e2;
+}
+
+.mine-cell-mine {
+    background: #fecaca;
+}
+
+.board-2048 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(64px, 96px));
+    gap: 10px;
+    background: #8b5e34;
+    padding: 12px;
+    border-radius: 18px;
+}
+
+.tile-2048 {
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #5b3417;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.tile-2048-0 { background: rgba(255, 255, 255, 0.16); }
+.tile-2048-2 { background: #fef3c7; }
+.tile-2048-4 { background: #fde68a; }
+.tile-2048-8 { background: #fdba74; }
+.tile-2048-16 { background: #fb923c; color: white; }
+.tile-2048-32 { background: #f97316; color: white; }
+.tile-2048-64 { background: #ea580c; color: white; }
+.tile-2048-128 { background: #facc15; }
+.tile-2048-256 { background: #eab308; }
+.tile-2048-512 { background: #84cc16; color: white; }
+.tile-2048-1024 { background: #22c55e; color: white; font-size: 22px; }
+.tile-2048-2048 { background: #16a34a; color: white; font-size: 22px; }
+
+.touch-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 180px;
+}
+
+.touch-controls button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #ff6701;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.touch-controls-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.touch-controls button:hover {
+    background: #e53935;
+}
+
+@media (max-width: 800px) {
+    .game-panel-header {
+        flex-direction: column;
+    }
+
+    .score-panel {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .game-panel {
+        padding: 18px;
+    }
+
+    .games-launcher {
+        grid-template-columns: 1fr;
+    }
+
+    .board-2048 {
+        grid-template-columns: repeat(4, minmax(52px, 1fr));
+        width: 100%;
+    }
+
+    .tile-2048 {
+        font-size: 22px;
+    }
+
+    .mine-cell {
+        font-size: 16px;
+    }
+}

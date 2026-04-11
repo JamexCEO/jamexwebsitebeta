@@ -1,0 +1,14 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="game2048Title">
+  <title id="game2048Title">2048 icon</title>
+  <rect width="128" height="128" rx="24" fill="#78350f"/>
+  <rect x="20" y="20" width="40" height="40" rx="10" fill="#fbbf24"/>
+  <rect x="68" y="20" width="40" height="40" rx="10" fill="#fb923c"/>
+  <rect x="20" y="68" width="40" height="40" rx="10" fill="#fde68a"/>
+  <rect x="68" y="68" width="40" height="40" rx="10" fill="#fef3c7"/>
+  <g fill="#7c2d12" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">
+    <text x="40" y="46">2</text>
+    <text x="88" y="46">4</text>
+    <text x="40" y="94">8</text>
+    <text x="88" y="94">16</text>
+  </g>
+</svg>

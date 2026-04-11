@@ -1,0 +1,98 @@
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png?">
+    <title> Hall of Fame - Jamex </title>
+</head>
+<body>
+        <header> <h1> Hall of Fame </h1>
+            <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        </header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="events.html">📅 Events</a></li>
+            <li><a href="news.html">📰 News</a></li>
+            <li><a href="games.html">🎮 Games</a></li>
+            <li><a href="hall-of-fame.html">🏆 Hall of Fame</a></li>
+            <li><a href="products.html">📱 Products</a></li>
+            <li><a href="partners.html">🤝 Partners</a></li>
+            <li><a href="our-team.html">👥 Our Team</a></li>
+            <li><a href="feedback.html">💬 Feedback</a></li>
+        </ul>
+    </nav>
+        <section>
+            <!-- search widget -->
+            <div class="search-container">
+                <input id="hof-search" type="text" placeholder="Search Hall of Fame...">
+            </div>
+            <div class="small-text">
+                <p> 💡 Tip: Search by name, date, or achievement </p>
+            </div>
+        </section>
+         <section>
+            <article class="hall-of-fame-entry">
+                <div class="tags"></div>
+                <h2> Harman Dhaliwal</h2>
+                <div class="date"> 13/3/2026 </div>
+                <div class="image-container left">
+                    <video controls>
+                        <source src="assets/harman-naplan-hack-hall-of-fame.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <p> On Friday the 13th of March, 2026, <strong> Harman Dhaliwal </strong> discovered a serious bug in the NAPLAN locked down browser! He found that you could open Raycast (a tool with many applications, including AI) while NAPLAN was open, by running both applications as administrator. Thankfully, he swiftly reported this security flaw to the local IT department, who were quick to alert the Department of Education. </p>
+                <p> He has now joined Jamex! </p>
+            </article>
+        </section>
+        <section>
+            <article class="hall-of-fame-entry">
+                <div class="tags"> </div>
+                <h2> Savindu Handapangoda</h2>
+                <div class="date"> 6/3/2026 </div>
+                <div class="image-container left">
+                    <img src="assets/savindu-hall-of-fame-points.png" width="616" alt="Image showing Savindu's first points in basketball">
+                </div>
+                <p> On the 6th of March, 2026, <strong> Savindu Handapangoda </strong> scored his first points in basketball! Although the team ended up losing the game, this historic moment will not be forgotten. This is also a celebration for the first CEO in the Hall of Fame. He has selected <strong> Aditya Arora </strong>to join Jamex. </p>
+            </article>
+        </section>
+        <section>
+            <article class="hall-of-fame-entry">
+                <div class="tags"></div>
+                <h2> Ethan Moroney</h2>
+                <div class="date"> 11/5/2022 </div>
+                <div class="image-container right">
+                    <img src="assets/naplan-image.png" width="341" height="148" alt="Image of NAPLAN welcome screen">
+                </div>
+                <p> During NAPLAN, it was impossible to exit the locked-down browser while waiting for the NAPLAN test to begin. However, <strong> Ethan Moroney </strong> found a way! Therefore, he is also automatically an official employee of Jamex, because he didn't have a position before! This is how Ethan got out of it: </p>
+                <ol>
+                    <li> He pressed the power button (turned the computer off) </li>
+                    <li> He turned it on again </li>
+                    <li> He shut it down </li>
+                    <li> He logged in </li>
+                    <li> He was out of the NAPLAN locked-down browser! </li>
+                </ol>
+                <p> Excellent work, Ethan! </p>
+            </article>
+        </section>
+        <section>
+            <article class="hall-of-fame-entry">
+                <div class="tags"></div>
+                <h2> Tao He</h2>
+                <div class="date"> 29/4/2022 </div>
+                <div class="image-container left">
+                    <img src="assets/swimming-tao-hall-of-fame.jpg" width="321.5" height="258.5" alt="Swimming icon">
+                    <img src="assets/first-place-tao-hall-of-fame.png" width="242" height="308.5" alt="First Place Badge">
+                </div>
+                <p> On the 29th of April, 2022, <strong> Tao He </strong> (Co-Founder) went to the swimming State Championships, which were held in Victoria, and came 1st place in the 9-10 age group for butterfly! Therefore, he is officially the first person on the Jamex Hall of Fame. </p>
+                <p> Everyone who gets a place on the Hall is entitled to a position at Jamex, and if he/she is already employed, they gets the honour of employing anyone of their choice. </p>
+                <p> To start the tradition, Tao He has recruited <strong> Lakshman Sundaralingam </strong> to join the pack. Good job, Tao! </p>
+            </article>
+        </section>
+  <footer> <small> © Copyright Jamex 2026 | <a href="https://github.com/JamexCEO/jamex"> See our source code</a> | <a href="https://jamexwebsite.featurebase.app"> Send feedback</a></small> </footer>
+</body>
+<script src="common.js"></script>
+<script>
+    initSearch('hof-search', '.hall-of-fame-entry');
+</script>
+</html>

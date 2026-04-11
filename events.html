@@ -1,0 +1,55 @@
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png?">
+    <title> Events - Jamex </title>
+</head>
+<body>
+        <header> <h1> Events </h1>
+            <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        </header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="events.html">📅 Events</a></li>
+            <li><a href="news.html">📰 News</a></li>
+            <li><a href="games.html">🎮 Games</a></li>
+            <li><a href="hall-of-fame.html">🏆 Hall of Fame</a></li>
+            <li><a href="products.html">📱 Products</a></li>
+            <li><a href="partners.html">🤝 Partners</a></li>
+            <li><a href="our-team.html">👥 Our Team</a></li>
+            <li><a href="feedback.html">💬 Feedback</a></li>
+        </ul>
+    </nav>
+        <section>
+            <!-- search widget -->
+            <div class="search-container">
+                <input id="events-search" type="text" placeholder="Search events...">
+            </div>
+            <div class="small-text">
+                <p> 💡 Tip: Search by event name, date, or month </p>
+            </div>
+        </section>
+        <section>
+            <article class="event">
+                <div class="tags"></div>
+                <h2> National Day of Mourning for Bondi Victims</h2>
+                <div class="date"> 22 January 2026</div>
+                <p> On 14 December 2025, Bondi was shaken by a devastating attack that left the local community grieving the loss of several residents and injured many more. On the 22nd of January, a National Day of Mourning will be observed to honour the victims and support their families — marked by moments of silence on beaches and in town centres, floral tributes, and candlelit vigils. Government leaders and community representatives spoke of resilience, unity, and the need for compassionate, practical support for survivors; mental‑health services and memorial funds were announced to help with recovery. The day combined solemn remembrance with a pledge to address the causes behind the violence, ensuring the victims' memories guide efforts toward healing and prevention. </p>
+            </article>
+        </section>
+        <section>
+            <article class="event">
+                <div class="tags"></div>
+                <h2> NAPLAN </h2>
+                <div class="date"> 11-23 March 2026</div>
+                <p> In 2026, schools all across Australia will once again partake in the NAPLAN assesments for grades 3, 5, 7, and 9. Schools will have the window of the 11th to the 23rd of March to complete testing. </p>
+            </article>
+        </section>
+  <footer> <small> © Copyright Jamex 2026 | <a href="https://github.com/JamexCEO/jamex"> See our source code</a> | <a href="https://jamexwebsite.featurebase.app"> Send feedback</a></small> </footer>
+</body>
+<script src="common.js"></script>
+<script>
+    initSearch('events-search', '.event');
+</script>
+</html>

@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png?">
+    <title>Games - Jamex</title>
+</head>
+<body>
+    <header>
+        <h1>Games</h1>
+        <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </header>
+
+    <nav class="navbar">
+        <ul>
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="events.html">📅 Events</a></li>
+            <li><a href="news.html">📰 News</a></li>
+            <li><a href="games.html">🎮 Games</a></li>
+            <li><a href="hall-of-fame.html">🏆 Hall of Fame</a></li>
+            <li><a href="products.html">📱 Products</a></li>
+            <li><a href="partners.html">🤝 Partners</a></li>
+            <li><a href="our-team.html">👥 Our Team</a></li>
+            <li><a href="feedback.html">💬 Feedback</a></li>
+        </ul>
+    </nav>
+
+    <section class="games-hero">
+        <div class="games-hero-copy">
+            <h2>Jamex Arcade</h2>
+            <p class="centered-text">Play quick classics, chase a new personal best, and sign in with your Jamex account to save your high scores.</p>
+        </div>
+
+        <div class="search-container">
+            <input id="games-search" type="text" placeholder="Search games...">
+        </div>
+        <div class="small-text">
+            <p>💡 Tip: Search by game name or style</p>
+        </div>
+    </section>
+
+    <section class="games-launcher">
+        <div class="game-card" id="card-snake">
+            <div class="game-card-media">
+                <img src="assets/game-snake.svg" alt="Snake game icon">
+            </div>
+            <h3>Snake</h3>
+            <p>Eat apples, grow longer, and avoid crashing into yourself.</p>
+            <div class="tags">snake arcade speed high score</div>
+            <a class="game-jump-btn" href="#snake-section">Play Snake</a>
+        </div>
+
+        <div class="game-card" id="card-minesweeper">
+            <div class="game-card-media">
+                <img src="assets/game-minesweeper.svg" alt="Minesweeper game icon">
+            </div>
+            <h3>Minesweeper</h3>
+            <p>Clear the safe squares and flag every mine without guessing wrong.</p>
+            <div class="tags">minesweeper puzzle logic strategy</div>
+            <a class="game-jump-btn" href="#minesweeper-section">Play Minesweeper</a>
+        </div>
+
+        <div class="game-card" id="card-tetris">
+            <div class="game-card-media">
+                <img src="assets/game-tetris.svg" alt="Tetris game icon">
+            </div>
+            <h3>Tetris</h3>
+            <p>Stack smart, clear lines, and stop the board from filling up.</p>
+            <div class="tags">tetris arcade blocks reflexes</div>
+            <a class="game-jump-btn" href="#tetris-section">Play Tetris</a>
+        </div>
+
+        <div class="game-card" id="card-2048">
+            <div class="game-card-media">
+                <img src="assets/game-2048.svg" alt="2048 game icon">
+            </div>
+            <h3>2048</h3>
+            <p>Slide and merge matching tiles until you reach 2048 and beyond.</p>
+            <div class="tags">2048 puzzle merge numbers strategy</div>
+            <a class="game-jump-btn" href="#game-2048-section">Play 2048</a>
+        </div>
+    </section>
+
+    <section class="game-panel" id="snake-section">
+        <div class="game-panel-header">
+            <div>
+                <h2>Snake</h2>
+                <p>Use the arrow keys or on-screen controls to turn. Every apple is worth 10 points.</p>
+            </div>
+            <div class="score-panel" data-scoreboard="snake">
+                <div><strong>Score:</strong> <span data-current-score>0</span></div>
+                <div><strong>Best:</strong> <span data-best-score>0</span></div>
+                <div class="save-hint" data-save-hint>Sign in to save your best score.</div>
+            </div>
+        </div>
+        <div class="game-stage">
+            <canvas id="snake-canvas" width="360" height="360" aria-label="Snake game board"></canvas>
+            <div class="game-side-tools">
+                <button class="jx-btn jx-btn--primary" id="snake-start-btn">Start Snake</button>
+                <button class="jx-btn jx-btn--secondary" id="snake-save-btn">Save high score</button>
+                <p class="game-status" id="snake-status">Press start to begin.</p>
+                <div class="touch-controls" data-touch-controls="snake">
+                    <button data-dir="up" aria-label="Move up">▲</button>
+                    <div class="touch-controls-row">
+                        <button data-dir="left" aria-label="Move left">◀</button>
+                        <button data-dir="down" aria-label="Move down">▼</button>
+                        <button data-dir="right" aria-label="Move right">▶</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="game-panel" id="minesweeper-section">
+        <div class="game-panel-header">
+            <div>
+                <h2>Minesweeper</h2>
+                <p>Left click to reveal and right click to flag. Clearing the board quickly earns a better score.</p>
+            </div>
+            <div class="score-panel" data-scoreboard="minesweeper">
+                <div><strong>Score:</strong> <span data-current-score>0</span></div>
+                <div><strong>Best:</strong> <span data-best-score>0</span></div>
+                <div class="save-hint" data-save-hint>Sign in to save your best score.</div>
+            </div>
+        </div>
+        <div class="game-stage minesweeper-stage">
+            <div class="game-side-tools">
+                <button class="jx-btn jx-btn--primary" id="minesweeper-reset-btn">New Board</button>
+                <button class="jx-btn jx-btn--secondary" id="minesweeper-save-btn">Save high score</button>
+                <p class="game-status" id="minesweeper-status">Clear all safe squares to win.</p>
+                <p class="game-substatus"><strong>Time:</strong> <span id="minesweeper-timer">0</span>s</p>
+                <p class="game-substatus"><strong>Mines left:</strong> <span id="minesweeper-mines-left">10</span></p>
+            </div>
+            <div class="minesweeper-board" id="minesweeper-board" aria-label="Minesweeper board"></div>
+        </div>
+    </section>
+
+    <section class="game-panel" id="tetris-section">
+        <div class="game-panel-header">
+            <div>
+                <h2>Tetris</h2>
+                <p>Arrow keys move and rotate. Clear lines for points before the stack reaches the top.</p>
+            </div>
+            <div class="score-panel" data-scoreboard="tetris">
+                <div><strong>Score:</strong> <span data-current-score>0</span></div>
+                <div><strong>Best:</strong> <span data-best-score>0</span></div>
+                <div class="save-hint" data-save-hint>Sign in to save your best score.</div>
+            </div>
+        </div>
+        <div class="game-stage">
+            <canvas id="tetris-canvas" width="300" height="600" aria-label="Tetris game board"></canvas>
+            <div class="game-side-tools">
+                <button class="jx-btn jx-btn--primary" id="tetris-start-btn">Start Tetris</button>
+                <button class="jx-btn jx-btn--secondary" id="tetris-save-btn">Save high score</button>
+                <p class="game-status" id="tetris-status">Stack carefully and clear lines.</p>
+                <p class="game-substatus"><strong>Lines:</strong> <span id="tetris-lines">0</span></p>
+                <div class="touch-controls" data-touch-controls="tetris">
+                    <button data-action="rotate" aria-label="Rotate piece">⟳</button>
+                    <div class="touch-controls-row">
+                        <button data-action="left" aria-label="Move left">◀</button>
+                        <button data-action="down" aria-label="Move down">▼</button>
+                        <button data-action="right" aria-label="Move right">▶</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="game-panel" id="game-2048-section">
+        <div class="game-panel-header">
+            <div>
+                <h2>2048</h2>
+                <p>Use the arrow keys or swipe-style buttons to combine equal tiles and grow your board.</p>
+            </div>
+            <div class="score-panel" data-scoreboard="2048">
+                <div><strong>Score:</strong> <span data-current-score>0</span></div>
+                <div><strong>Best:</strong> <span data-best-score>0</span></div>
+                <div class="save-hint" data-save-hint>Sign in to save your best score.</div>
+            </div>
+        </div>
+        <div class="game-stage game-stage-2048">
+            <div class="game-side-tools">
+                <button class="jx-btn jx-btn--primary" id="game-2048-reset-btn">New 2048 Game</button>
+                <button class="jx-btn jx-btn--secondary" id="game-2048-save-btn">Save high score</button>
+                <p class="game-status" id="game-2048-status">Join the numbers and reach 2048.</p>
+                <div class="touch-controls" data-touch-controls="2048">
+                    <button data-dir="up" aria-label="Move up">▲</button>
+                    <div class="touch-controls-row">
+                        <button data-dir="left" aria-label="Move left">◀</button>
+                        <button data-dir="down" aria-label="Move down">▼</button>
+                        <button data-dir="right" aria-label="Move right">▶</button>
+                    </div>
+                </div>
+            </div>
+            <div class="board-2048" id="board-2048" aria-label="2048 board"></div>
+        </div>
+    </section>
+
+    <footer>
+        <small>© Copyright Jamex 2026 | <a href="https://github.com/JamexCEO/jamex">See our source code</a> | <a href="https://jamexwebsite.featurebase.app">Send feedback</a></small>
+    </footer>
+
+    <script src="common.js"></script>
+    <script src="games.js"></script>
+    <script>
+        initSearch('games-search', '.game-card');
+    </script>
+</body>
+</html>
