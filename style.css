@@ -1092,6 +1092,20 @@ body.dark .jx-comment-signin-prompt {
 
 .games-hero {
     padding: 12px 0 10px;
+    position: relative;
+    isolation: isolate;
+}
+
+.games-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at top left, rgba(255, 103, 1, 0.16), transparent 32%),
+        radial-gradient(circle at top right, rgba(0, 176, 80, 0.14), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+    z-index: -1;
 }
 
 .games-hero-copy {
@@ -1113,6 +1127,14 @@ body.dark .jx-comment-signin-prompt {
     border: 2px solid rgba(229, 57, 53, 0.15);
     border-radius: 20px;
     box-shadow: 0 18px 36px rgba(31, 41, 55, 0.08);
+    opacity: 0;
+    transform: translateY(26px) scale(0.98);
+    transition:
+        opacity 0.55s ease,
+        transform 0.55s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+    transition-delay: var(--arcade-delay, 0ms);
 }
 
 body.dark .game-card,
@@ -1125,6 +1147,25 @@ body.dark .game-panel {
 .game-card {
     padding: 20px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.arcade-in-view {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    inset: -120% auto auto -40%;
+    width: 42%;
+    height: 300%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+    transform: rotate(18deg);
+    transition: transform 0.8s ease;
+    pointer-events: none;
 }
 
 .game-card h3,
@@ -1148,11 +1189,13 @@ body.dark .game-panel {
     place-items: center;
     border-radius: 22px;
     background: linear-gradient(135deg, rgba(229, 57, 53, 0.1), rgba(255, 192, 0, 0.18));
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .game-card-media img {
     width: 78px;
     height: 78px;
+    transition: transform 0.3s ease;
 }
 
 .game-jump-btn {
@@ -1164,10 +1207,31 @@ body.dark .game-panel {
     color: #fff;
     text-decoration: none;
     font-weight: 700;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .game-jump-btn:hover {
     background: #ff6701;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px rgba(229, 57, 53, 0.22);
+}
+
+.game-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 24px 42px rgba(31, 41, 55, 0.14);
+}
+
+.game-card:hover::before {
+    transform: translateX(280%) rotate(18deg);
+}
+
+.game-card:hover .game-card-media {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 14px 26px rgba(255, 103, 1, 0.18);
+}
+
+.game-card:hover .game-card-media img {
+    transform: scale(1.08) rotate(4deg);
 }
 
 .game-panel {
@@ -1179,6 +1243,7 @@ body.dark .game-panel {
 .game-panel-active {
     border-color: rgba(255, 103, 1, 0.45);
     box-shadow: 0 20px 38px rgba(255, 103, 1, 0.16);
+    animation: active-panel-glow 2.4s ease-in-out infinite;
 }
 
 .game-panel-header {
@@ -1195,6 +1260,7 @@ body.dark .game-panel {
     border-radius: 16px;
     background: rgba(229, 57, 53, 0.08);
     border: 1px solid rgba(229, 57, 53, 0.15);
+    backdrop-filter: blur(8px);
 }
 
 body.dark .score-panel {
@@ -1207,6 +1273,16 @@ body.dark .score-panel {
     color: #666;
 }
 
+[data-current-score],
+[data-best-score] {
+    display: inline-block;
+    min-width: 22px;
+}
+
+.score-pop {
+    animation: score-pop 0.28s ease;
+}
+
 body.dark .save-hint {
     color: #bbb;
 }
@@ -1216,6 +1292,46 @@ body.dark .save-hint {
     gap: 24px;
     align-items: flex-start;
     flex-wrap: wrap;
+}
+
+.playfield-shell {
+    position: relative;
+    display: inline-block;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+#minesweeper-shell {
+    width: min(100%, 420px);
+    display: block;
+}
+
+.pause-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px) grayscale(0.25);
+    color: #fff;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.playfield-shell.paused .pause-overlay {
+    opacity: 1;
+}
+
+.playfield-shell.paused canvas,
+.playfield-shell.paused .minesweeper-board {
+    filter: grayscale(0.65) brightness(0.72);
 }
 
 .game-side-tools {
@@ -1242,6 +1358,15 @@ body.dark .save-hint {
     border: 4px solid rgba(255, 255, 255, 0.16);
     max-width: 100%;
     height: auto;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 18px 30px rgba(15, 23, 42, 0.22);
+}
+
+.tetris-lock-impact {
+    animation: tetris-lock-impact 0.16s ease;
+}
+
+.tetris-line-clear {
+    animation: tetris-line-clear 0.28s ease;
 }
 
 .minesweeper-stage {
@@ -1266,14 +1391,17 @@ body.dark .save-hint {
     font-weight: 700;
     color: #1e293b;
     cursor: pointer;
+    transition: transform 0.12s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .mine-cell:hover {
     background: #cbd5e1;
+    transform: translateY(-1px);
 }
 
 .mine-cell-revealed {
     background: #f8fafc;
+    animation: mine-reveal 0.18s ease;
 }
 
 .mine-cell-flagged {
@@ -1282,20 +1410,46 @@ body.dark .save-hint {
 
 .mine-cell-mine {
     background: #fecaca;
+    animation: mine-burst 0.3s ease;
 }
 
 .board-2048 {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(64px, 96px));
-    gap: 10px;
+    --cell-size: clamp(52px, 18vw, 96px);
+    --gap: 10px;
+    position: relative;
+    width: calc((var(--cell-size) * 4) + (var(--gap) * 3) + 24px);
+    height: calc((var(--cell-size) * 4) + (var(--gap) * 3) + 24px);
     background: #8b5e34;
     padding: 12px;
     border-radius: 18px;
+    overflow: hidden;
+}
+
+.board-2048-base {
+    display: grid;
+    grid-template-columns: repeat(4, var(--cell-size));
+    grid-template-rows: repeat(4, var(--cell-size));
+    gap: var(--gap);
+}
+
+.board-2048-cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.board-2048-tiles {
+    position: absolute;
+    inset: 12px;
 }
 
 .tile-2048 {
-    width: 100%;
-    aspect-ratio: 1;
+    position: absolute;
+    width: var(--cell-size);
+    height: var(--cell-size);
+    left: calc(var(--col) * (var(--cell-size) + var(--gap)));
+    top: calc(var(--row) * (var(--cell-size) + var(--gap)));
     display: grid;
     place-items: center;
     border-radius: 14px;
@@ -1303,9 +1457,27 @@ body.dark .save-hint {
     font-weight: 700;
     color: #5b3417;
     background: rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    transition: transform 0.14s ease;
+    will-change: transform;
 }
 
-.tile-2048-0 { background: rgba(255, 255, 255, 0.16); }
+.tile-2048-pop {
+    animation: tile-pop-in 0.2s ease;
+}
+
+.tile-2048-moving {
+    z-index: 2;
+}
+
+.tile-2048-merged {
+    z-index: 3;
+}
+
+.tile-2048-new {
+    z-index: 3;
+}
+
 .tile-2048-2 { background: #fef3c7; }
 .tile-2048-4 { background: #fde68a; }
 .tile-2048-8 { background: #fdba74; }
@@ -1334,6 +1506,7 @@ body.dark .save-hint {
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
+    transition: transform 0.14s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .touch-controls-row {
@@ -1344,6 +1517,63 @@ body.dark .save-hint {
 
 .touch-controls button:hover {
     background: #e53935;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(229, 57, 53, 0.22);
+}
+
+.touch-controls button:active,
+.jx-btn:active,
+.game-jump-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.status-flash {
+    animation: status-flash 0.45s ease;
+}
+
+@keyframes score-pop {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.22); color: #e53935; }
+    100% { transform: scale(1); }
+}
+
+@keyframes tile-pop-in {
+    0% { transform: scale(0.72); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes mine-reveal {
+    0% { transform: scale(0.82); opacity: 0.3; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes mine-burst {
+    0% { transform: scale(0.75); }
+    60% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+}
+
+@keyframes status-flash {
+    0% { transform: translateY(0); opacity: 0.75; }
+    45% { transform: translateY(-2px); opacity: 1; color: #e53935; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes active-panel-glow {
+    0%, 100% { box-shadow: 0 20px 38px rgba(255, 103, 1, 0.16); }
+    50% { box-shadow: 0 24px 44px rgba(255, 103, 1, 0.24); }
+}
+
+@keyframes tetris-lock-impact {
+    0% { transform: scale(1); filter: brightness(1); }
+    45% { transform: scale(1.012); filter: brightness(1.12); }
+    100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes tetris-line-clear {
+    0% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 18px 30px rgba(15, 23, 42, 0.22); }
+    35% { box-shadow: inset 0 0 24px rgba(250, 204, 21, 0.4), 0 0 24px rgba(250, 204, 21, 0.24); }
+    100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 18px 30px rgba(15, 23, 42, 0.22); }
 }
 
 @media (max-width: 800px) {
@@ -1357,6 +1587,27 @@ body.dark .save-hint {
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .game-card,
+    .game-panel,
+    .game-card::before,
+    .game-card-media,
+    .game-card-media img,
+    .game-jump-btn,
+    .touch-controls button,
+    .mine-cell,
+    .tile-2048,
+    .tetris-lock-impact,
+    .tetris-line-clear,
+    .score-pop,
+    .status-flash,
+    .game-panel-active {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
 @media (max-width: 600px) {
     .game-panel {
         padding: 18px;
@@ -1367,8 +1618,10 @@ body.dark .save-hint {
     }
 
     .board-2048 {
-        grid-template-columns: repeat(4, minmax(52px, 1fr));
         width: 100%;
+        max-width: calc((var(--cell-size) * 4) + (var(--gap) * 3) + 24px);
+        height: auto;
+        aspect-ratio: 1;
     }
 
     .tile-2048 {

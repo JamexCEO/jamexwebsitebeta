@@ -93,17 +93,21 @@
             </div>
         </div>
         <div class="game-stage">
-            <canvas id="snake-canvas" width="360" height="360" aria-label="Snake game board"></canvas>
+            <div class="playfield-shell" id="snake-shell">
+                <canvas id="snake-canvas" width="360" height="360" aria-label="Snake game board"></canvas>
+                <div class="pause-overlay" id="snake-pause-overlay" aria-hidden="true">Paused</div>
+            </div>
             <div class="game-side-tools">
-                <button class="jx-btn jx-btn--primary" id="snake-start-btn">Start Snake</button>
-                <button class="jx-btn jx-btn--secondary" id="snake-save-btn">Save high score</button>
+                <button type="button" class="jx-btn jx-btn--primary" id="snake-start-btn">Start Snake</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="snake-pause-btn">Pause Snake</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="snake-save-btn">Save high score</button>
                 <p class="game-status" id="snake-status">Press start to begin.</p>
                 <div class="touch-controls" data-touch-controls="snake">
-                    <button data-dir="up" aria-label="Move up">▲</button>
+                    <button type="button" data-dir="up" aria-label="Move up">▲</button>
                     <div class="touch-controls-row">
-                        <button data-dir="left" aria-label="Move left">◀</button>
-                        <button data-dir="down" aria-label="Move down">▼</button>
-                        <button data-dir="right" aria-label="Move right">▶</button>
+                        <button type="button" data-dir="left" aria-label="Move left">◀</button>
+                        <button type="button" data-dir="down" aria-label="Move down">▼</button>
+                        <button type="button" data-dir="right" aria-label="Move right">▶</button>
                     </div>
                 </div>
             </div>
@@ -124,13 +128,17 @@
         </div>
         <div class="game-stage minesweeper-stage">
             <div class="game-side-tools">
-                <button class="jx-btn jx-btn--primary" id="minesweeper-reset-btn">New Board</button>
-                <button class="jx-btn jx-btn--secondary" id="minesweeper-save-btn">Save high score</button>
+                <button type="button" class="jx-btn jx-btn--primary" id="minesweeper-reset-btn">New Board</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="minesweeper-pause-btn">Pause Minesweeper</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="minesweeper-save-btn">Save high score</button>
                 <p class="game-status" id="minesweeper-status">Clear all safe squares to win.</p>
                 <p class="game-substatus"><strong>Time:</strong> <span id="minesweeper-timer">0</span>s</p>
                 <p class="game-substatus"><strong>Mines left:</strong> <span id="minesweeper-mines-left">10</span></p>
             </div>
-            <div class="minesweeper-board" id="minesweeper-board" aria-label="Minesweeper board"></div>
+            <div class="playfield-shell" id="minesweeper-shell">
+                <div class="minesweeper-board" id="minesweeper-board" aria-label="Minesweeper board"></div>
+                <div class="pause-overlay" id="minesweeper-pause-overlay" aria-hidden="true">Paused</div>
+            </div>
         </div>
     </section>
 
@@ -147,18 +155,22 @@
             </div>
         </div>
         <div class="game-stage">
-            <canvas id="tetris-canvas" width="300" height="600" aria-label="Tetris game board"></canvas>
+            <div class="playfield-shell" id="tetris-shell">
+                <canvas id="tetris-canvas" width="300" height="600" aria-label="Tetris game board"></canvas>
+                <div class="pause-overlay" id="tetris-pause-overlay" aria-hidden="true">Paused</div>
+            </div>
             <div class="game-side-tools">
-                <button class="jx-btn jx-btn--primary" id="tetris-start-btn">Start Tetris</button>
-                <button class="jx-btn jx-btn--secondary" id="tetris-save-btn">Save high score</button>
+                <button type="button" class="jx-btn jx-btn--primary" id="tetris-start-btn">Start Tetris</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="tetris-pause-btn">Pause Tetris</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="tetris-save-btn">Save high score</button>
                 <p class="game-status" id="tetris-status">Stack carefully and clear lines.</p>
                 <p class="game-substatus"><strong>Lines:</strong> <span id="tetris-lines">0</span></p>
                 <div class="touch-controls" data-touch-controls="tetris">
-                    <button data-action="rotate" aria-label="Rotate piece">⟳</button>
+                    <button type="button" data-action="rotate" aria-label="Rotate piece">⟳</button>
                     <div class="touch-controls-row">
-                        <button data-action="left" aria-label="Move left">◀</button>
-                        <button data-action="down" aria-label="Move down">▼</button>
-                        <button data-action="right" aria-label="Move right">▶</button>
+                        <button type="button" data-action="left" aria-label="Move left">◀</button>
+                        <button type="button" data-action="down" aria-label="Move down">▼</button>
+                        <button type="button" data-action="right" aria-label="Move right">▶</button>
                     </div>
                 </div>
             </div>
@@ -179,15 +191,15 @@
         </div>
         <div class="game-stage game-stage-2048">
             <div class="game-side-tools">
-                <button class="jx-btn jx-btn--primary" id="game-2048-reset-btn">New 2048 Game</button>
-                <button class="jx-btn jx-btn--secondary" id="game-2048-save-btn">Save high score</button>
+                <button type="button" class="jx-btn jx-btn--primary" id="game-2048-reset-btn">New 2048 Game</button>
+                <button type="button" class="jx-btn jx-btn--secondary" id="game-2048-save-btn">Save high score</button>
                 <p class="game-status" id="game-2048-status">Join the numbers and reach 2048.</p>
                 <div class="touch-controls" data-touch-controls="2048">
-                    <button data-dir="up" aria-label="Move up">▲</button>
+                    <button type="button" data-dir="up" aria-label="Move up">▲</button>
                     <div class="touch-controls-row">
-                        <button data-dir="left" aria-label="Move left">◀</button>
-                        <button data-dir="down" aria-label="Move down">▼</button>
-                        <button data-dir="right" aria-label="Move right">▶</button>
+                        <button type="button" data-dir="left" aria-label="Move left">◀</button>
+                        <button type="button" data-dir="down" aria-label="Move down">▼</button>
+                        <button type="button" data-dir="right" aria-label="Move right">▶</button>
                     </div>
                 </div>
             </div>
