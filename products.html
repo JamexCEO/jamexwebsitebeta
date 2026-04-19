@@ -4,7 +4,7 @@
     <link rel="icon" type="image/png" href="assets/favicon.png?">
     <title> Products - Jamex </title>
 </head>
-<body>
+<body class="products-page">
         <header> <h1> Products </h1>
             <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
 </header>
@@ -22,7 +22,13 @@
         </ul>
     </nav>
         <section>
-            <article>
+            <div class="search-container">
+                <input id="products-search" type="text" placeholder="Search products...">
+            </div>
+            <div class="small-text">
+                <p> Tip: Search by product name, feature, or category </p>
+            </div>
+            <article class="product-entry">
                 <h2> No as a Service Discord Bot </h2>
                 <div class="image-container left">
                     <img src="assets/naas discord bot.png" width="380" alt="Image showcasing the NaaS Discord Bot">
@@ -34,7 +40,7 @@
             </article>
         </section>
         <section>
-            <article>
+            <article class="product-entry">
                 <h2> JLock Pro 2 </h2>
                 <div class="image-container left">
                     <img src="assets/jlock_pro_2.png" width="320" height="464.75" alt="Promotional Image for JLock Pro 2">
@@ -42,14 +48,19 @@
                 <p> Our new JLock Pro 2 builds off the strength of the JLock 2, with added security features like facial recognition scanning to prevent repeat offenders. This technology can also be used to add your face for a secure unlock if you choose. You can choose to buy the TheftSafe cloud storage feature add-on (only $10/month, $100/year or $1500 for a one-time purchase) which takes a picture of the thief and saves it to the TheftSafe cloud to send out an alert if they ever try to pry open your lock again. Made out of spacecraft-grade titanium, this lock has a lifetime hardware warranty and 10-year software warranty. There is a screen to enter a PIN, see recent activity and see the latest pictures in the TheftSafe cloud. You can also use the FaceUnlock method I mentioned earlier, or just put your finger over the fingerprint scanner on the side of the lock to activate TouchUnlock. So, what are you waiting for? Buy the new JLock Pro 2 for just $60! </p>
             </article>
         </section>
-        <section> <h2> All Apps </h2>
+        <section class="product-entry"> <h2> All Apps </h2>
         </section>
-        <section> <h2> NEWS: New Jamex App Icons! </h2>
-            <p> We thought the current Jamex app icons were a bit old-fashioned, so we gave them a bit of a refresh! These new changes will take effect on the 1st of January, 2024. Meanwhile, feel free to introduce yourself to them and get used to them!  Click on the 'Next' and 'Previous' arrow buttons to view the old and new icons (if these buttons don't appear, this means that there is only one version of the icon, so it either hasn't been updated or has been newly created)! </p>
+        <section class="product-entry"> <h2> NEWS: New Jamex App Icons! </h2>
+            <p> We thought the current Jamex app icons were a bit old-fashioned, so we gave them a bit of a refresh! These new changes will take effect on the 1st of January, 2024. Meanwhile, feel free to introduce yourself to them and get used to them! Click on the 'Next' and 'Previous' arrow buttons to view the old and new icons (if these buttons don't appear, this means that there is only one version of the icon, so it either hasn't been updated or has been newly created)! </p>
         </section>
-        <section> <h2> Other Jamex Accessories and Merchandise </h2>
+        <section class="product-entry"> <h2> Other Jamex Accessories and Merchandise </h2>
             <p> [None yet! When they are available, they will show up here.] </p>
+        </section>
   <footer> <small> © Copyright Jamex 2026 | <a href="https://github.com/JamexCEO/jamex"> See our source code</a> | <a href="https://jamexwebsite.featurebase.app"> Send feedback</a></small> </footer>
 </body>
 <script src="common.js"></script>
+<script>
+    initSearch('products-search', '.product-entry');
+</script>
 </html>
+
