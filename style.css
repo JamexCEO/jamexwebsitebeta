@@ -9,6 +9,14 @@
     --text-color: black;
 }
 
+body[data-light-bg="white"] {
+    --bg-color: #ffffff;
+}
+
+body[data-light-bg="mint"] {
+    --bg-color: #ebfff4;
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -21,6 +29,14 @@ body {
 body.dark {
     --bg-color: #363636;
     --text-color: white;
+}
+
+body.dark[data-dark-bg="stone"] {
+    --bg-color: #363636;
+}
+
+body.dark[data-dark-bg="black"] {
+    --bg-color: #000000;
 }
 
 /* theme toggle button */
@@ -600,7 +616,7 @@ body.dark .article-link-btn--copied {
 #account-btn {
     position: absolute;
     top: 20px;
-    right: 64px; /* leave room for theme-toggle at right:20px (24px icon + 20px gap) */
+    right: 110px; /* leave room for settings and theme toggle buttons */
     font-size: 14px;
     font-family: Arial, sans-serif;
     font-weight: 600;
@@ -644,6 +660,33 @@ body.dark #account-btn.account-btn--signed-in {
 body.dark #account-btn.account-btn--signed-in:hover {
     background: #66bb6a;
     color: #000;
+}
+
+#settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 64px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 2px solid #ccc;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+#settings-btn:hover {
+    border-color: #ff6701;
+    background: rgba(255, 103, 1, 0.12);
+    transform: rotate(20deg);
+}
+
+body.dark #settings-btn:hover {
+    background: rgba(255, 192, 0, 0.16);
 }
 
 /* =========================================================================
@@ -690,6 +733,12 @@ body.dark #account-btn.account-btn--signed-in:hover {
     will-change: transform, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
+}
+
+.jx-modal-box--settings {
+    max-width: 520px;
+    max-height: min(86vh, 760px);
+    overflow-y: auto;
 }
 
 @keyframes jx-slide-in {
@@ -769,6 +818,15 @@ body.dark #account-btn.account-btn--signed-in:hover {
     margin-top: 10px;
 }
 
+.jx-modal-readout {
+    font-size: 14px;
+    margin: 0 0 8px 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 103, 1, 0.08);
+    word-break: break-word;
+}
+
 .jx-modal-error {
     font-size: 13px;
     color: #e53935;
@@ -810,6 +868,123 @@ body.dark #account-btn.account-btn--signed-in:hover {
     gap: 10px;
     justify-content: center;
     margin-top: 18px;
+}
+
+.jx-modal-actions--wrap {
+    flex-wrap: wrap;
+}
+
+.jx-settings-section {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(128, 128, 128, 0.24);
+}
+
+.jx-settings-section:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.jx-settings-heading {
+    margin: 0 0 10px 0;
+    color: #ff6701;
+    font-size: 18px;
+    text-align: left;
+}
+
+.jx-settings-card {
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+body.dark .jx-settings-card {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.jx-settings-card-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: var(--text-color);
+    text-align: left;
+}
+
+.jx-settings-radio-group {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.jx-settings-radio {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+body.dark .jx-settings-radio {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.jx-settings-radio input {
+    margin-top: 3px;
+}
+
+.jx-settings-radio strong,
+.jx-settings-radio span {
+    display: block;
+}
+
+.jx-settings-radio span {
+    font-size: 12px;
+    color: #777;
+}
+
+body.dark .jx-settings-radio span {
+    color: #bbb;
+}
+
+@media (max-width: 640px) {
+    header {
+        padding-top: 58px;
+    }
+
+    #theme-toggle,
+    #settings-btn,
+    #account-btn {
+        top: 12px;
+    }
+
+    #theme-toggle {
+        right: 12px;
+    }
+
+    #settings-btn {
+        right: 54px;
+    }
+
+    #account-btn {
+        right: 100px;
+        max-width: calc(100vw - 116px);
+        font-size: 13px;
+        padding: 5px 10px;
+    }
+
+    .jx-modal-box--settings {
+        width: calc(100% - 24px);
+        padding: 22px 18px;
+    }
+
+    .jx-modal-actions {
+        flex-wrap: wrap;
+    }
 }
 
 /* Shared button styles for modal buttons */
