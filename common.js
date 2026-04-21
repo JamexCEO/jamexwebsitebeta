@@ -1292,7 +1292,7 @@
         const existing = document.getElementById('jamex-settings-modal');
         if (existing) {
             if (existing.dataset.closing !== 'true') {
-                const firstInput = existing.querySelector('.jx-modal-input, input[type="radio"]');
+                const firstInput = existing.querySelector('.jx-settings-back, .jx-settings-tab, .jx-modal-input, input[type="radio"]');
                 if (firstInput) firstInput.focus();
             }
             return;
@@ -1303,11 +1303,23 @@
 
         const overlay = document.createElement('div');
         overlay.id = 'jamex-settings-modal';
-        overlay.className = 'jx-modal-overlay';
+        overlay.className = 'jx-modal-overlay jx-settings-overlay';
         overlay.dataset.closing = 'false';
 
-        const box = document.createElement('div');
-        box.className = 'jx-modal-box jx-modal-box--settings';
+        const page = document.createElement('div');
+        page.className = 'jx-settings-page';
+
+        const topbar = document.createElement('div');
+        topbar.className = 'jx-settings-topbar';
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'jx-btn jx-btn--secondary jx-settings-back';
+        backBtn.type = 'button';
+        backBtn.textContent = String.fromCodePoint(0x21A9, 0xFE0F) + ' Back';
+        backBtn.addEventListener('click', () => closeModal(overlay));
+
+        const hero = document.createElement('div');
+        hero.className = 'jx-settings-hero';
 
         const title = document.createElement('h2');
         title.className = 'jx-modal-title';
@@ -1317,13 +1329,68 @@
         sub.className = 'jx-modal-sub';
         sub.textContent = 'Manage your account details and choose how the site looks in light and dark mode.';
 
-        const accountSection = document.createElement('section');
-        accountSection.className = 'jx-settings-section';
+        hero.appendChild(title);
+        hero.appendChild(sub);
+        topbar.appendChild(backBtn);
+        topbar.appendChild(hero);
 
-        const accountHeading = document.createElement('h3');
-        accountHeading.className = 'jx-settings-heading';
-        accountHeading.textContent = 'Account settings';
-        accountSection.appendChild(accountHeading);
+        const layout = document.createElement('div');
+        layout.className = 'jx-settings-layout';
+
+        const sidebar = document.createElement('aside');
+        sidebar.className = 'jx-settings-sidebar';
+
+        const content = document.createElement('div');
+        content.className = 'jx-settings-content';
+
+        const panels = {};
+        const tabs = {};
+
+        function activateTab(tabId) {
+            Object.keys(panels).forEach(key => {
+                const active = key === tabId;
+                panels[key].hidden = !active;
+                tabs[key].classList.toggle('jx-settings-tab--active', active);
+                tabs[key].setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+        }
+
+        function createTab(tabId, label) {
+            const btn = document.createElement('button');
+            btn.className = 'jx-settings-tab';
+            btn.type = 'button';
+            btn.textContent = label;
+            btn.setAttribute('role', 'tab');
+            btn.setAttribute('aria-selected', 'false');
+            btn.addEventListener('click', () => activateTab(tabId));
+            tabs[tabId] = btn;
+            sidebar.appendChild(btn);
+        }
+
+        function createPanel(tabId, headingText, hintText) {
+            const panel = document.createElement('section');
+            panel.className = 'jx-settings-panel';
+            panel.setAttribute('role', 'tabpanel');
+
+            const heading = document.createElement('h3');
+            heading.className = 'jx-settings-heading';
+            heading.textContent = headingText;
+
+            const hint = document.createElement('p');
+            hint.className = 'jx-modal-hint';
+            hint.textContent = hintText;
+
+            panel.appendChild(heading);
+            panel.appendChild(hint);
+            panels[tabId] = panel;
+            content.appendChild(panel);
+            return panel;
+        }
+
+        createTab('account', String.fromCodePoint(0x1F464) + ' Account');
+        createTab('appearance', String.fromCodePoint(0x1F3A8) + ' Appearance');
+
+        const accountSection = createPanel('account', 'Account settings', 'Update and reveal your saved account details from one place.');
 
         if (JamexAccount.isLoggedIn()) {
             const accountHint = document.createElement('p');
@@ -1549,16 +1616,7 @@
             accountSection.appendChild(signedOutCard);
         }
 
-        const appearanceSection = document.createElement('section');
-        appearanceSection.className = 'jx-settings-section';
-        const appearanceHeading = document.createElement('h3');
-        appearanceHeading.className = 'jx-settings-heading';
-        appearanceHeading.textContent = 'Website background customisation';
-        const appearanceHint = document.createElement('p');
-        appearanceHint.className = 'jx-modal-hint';
-        appearanceHint.textContent = 'Choose separate background styles for light mode and dark mode.';
-        appearanceSection.appendChild(appearanceHeading);
-        appearanceSection.appendChild(appearanceHint);
+        const appearanceSection = createPanel('appearance', 'Website background customisation', 'Pick a look for light mode and dark mode separately.');
 
         function createBackgroundCard(groupName, titleText, storageKey, options) {
             const card = document.createElement('div');
@@ -1567,12 +1625,12 @@
             heading.className = 'jx-settings-card-title';
             heading.textContent = titleText;
             const group = document.createElement('div');
-            group.className = 'jx-settings-radio-group';
+            group.className = 'jx-settings-choice-grid';
             const currentValue = localStorage.getItem(storageKey) || options.defaultValue;
 
             options.items.forEach(option => {
                 const label = document.createElement('label');
-                label.className = 'jx-settings-radio';
+                label.className = 'jx-settings-swatch-option';
                 const input = document.createElement('input');
                 input.type = 'radio';
                 input.name = groupName;
@@ -1582,6 +1640,10 @@
                     localStorage.setItem(storageKey, option.value);
                     applyTheme(document.body.classList.contains('dark'));
                 });
+                const swatch = document.createElement('span');
+                swatch.className = 'jx-settings-swatch';
+                swatch.style.backgroundColor = option.swatch;
+                if (option.borderColor) swatch.style.borderColor = option.borderColor;
                 const textWrap = document.createElement('div');
                 const strong = document.createElement('strong');
                 strong.textContent = option.label;
@@ -1590,6 +1652,7 @@
                 textWrap.appendChild(strong);
                 textWrap.appendChild(span);
                 label.appendChild(input);
+                label.appendChild(swatch);
                 label.appendChild(textWrap);
                 group.appendChild(label);
             });
@@ -1602,32 +1665,24 @@
         appearanceSection.appendChild(createBackgroundCard('jx-light-background', 'Light mode background', LIGHT_BG_KEY, {
             defaultValue: 'mint',
             items: [
-                { value: 'white', label: 'Pure White', description: 'A clean plain white background.' },
-                { value: 'mint', label: 'Minty Green', description: 'The current soft green look and the default for light mode.' },
+                { value: 'white', label: 'Pure White', description: '', swatch: '#ffffff', borderColor: '#cfcfcf' },
+                { value: 'mint', label: 'Minty Green', description: 'Default', swatch: '#ebfff4', borderColor: '#9ed6b6' },
             ],
         }));
         appearanceSection.appendChild(createBackgroundCard('jx-dark-background', 'Dark mode background', DARK_BG_KEY, {
             defaultValue: 'stone',
             items: [
-                { value: 'black', label: 'Super Black', description: 'A fully black background for dark mode.' },
-                { value: 'stone', label: 'Stone Grey', description: 'The current dark grey look and the default for dark mode.' },
+                { value: 'black', label: 'Super Black', description: '', swatch: '#000000', borderColor: '#555555' },
+                { value: 'stone', label: 'Stone Grey', description: 'Default', swatch: '#363636', borderColor: '#707070' },
             ],
         }));
 
-        const footerActions = document.createElement('div');
-        footerActions.className = 'jx-modal-actions jx-modal-actions--wrap';
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'jx-btn jx-btn--secondary';
-        closeBtn.type = 'button';
-        closeBtn.textContent = 'Close';
-        closeBtn.addEventListener('click', () => closeModal(overlay));
-        footerActions.appendChild(closeBtn);
+        activateTab('account');
 
-        [title, sub, accountSection, appearanceSection, footerActions].forEach(node => box.appendChild(node));
-
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) closeModal(overlay);
-        });
+        layout.appendChild(sidebar);
+        layout.appendChild(content);
+        page.appendChild(topbar);
+        page.appendChild(layout);
 
         function escHandler(e) {
             if (e.key === 'Escape') {
@@ -1637,10 +1692,10 @@
         }
         document.addEventListener('keydown', escHandler);
 
-        overlay.appendChild(box);
+        overlay.appendChild(page);
         document.body.appendChild(overlay);
         requestAnimationFrame(() => {
-            const firstFocusable = box.querySelector('.jx-modal-input, input[type="radio"], .jx-btn');
+            const firstFocusable = page.querySelector('.jx-settings-back, .jx-settings-tab, .jx-modal-input, input[type="radio"], .jx-btn');
             if (firstFocusable) firstFocusable.focus();
         });
     }

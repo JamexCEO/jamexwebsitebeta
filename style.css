@@ -741,6 +741,112 @@ body.dark #settings-btn:hover {
     overflow-y: auto;
 }
 
+.jx-settings-overlay {
+    background: var(--bg-color);
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+}
+
+.jx-settings-page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 28px 32px 36px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    overflow-y: auto;
+}
+
+.jx-settings-topbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.jx-settings-back {
+    flex: 0 0 auto;
+}
+
+.jx-settings-hero {
+    flex: 1 1 auto;
+}
+
+.jx-settings-hero .jx-modal-title,
+.jx-settings-hero .jx-modal-sub {
+    text-align: left;
+}
+
+.jx-settings-hero .jx-modal-title {
+    margin-bottom: 8px;
+}
+
+.jx-settings-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.jx-settings-sidebar {
+    position: sticky;
+    top: 20px;
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(128, 128, 128, 0.24);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+body.dark .jx-settings-sidebar {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.jx-settings-tab {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid rgba(128, 128, 128, 0.28);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.jx-settings-tab:hover {
+    border-color: #ff6701;
+    background: rgba(255, 103, 1, 0.08);
+    transform: translateX(3px);
+}
+
+.jx-settings-tab--active {
+    border-color: #e53935;
+    background: rgba(229, 57, 53, 0.1);
+}
+
+.jx-settings-content {
+    min-width: 0;
+}
+
+.jx-settings-panel[hidden] {
+    display: none;
+}
+
+.jx-settings-panel {
+    padding: 20px;
+    border: 1px solid rgba(128, 128, 128, 0.24);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+body.dark .jx-settings-panel {
+    background: rgba(255, 255, 255, 0.03);
+}
+
 @keyframes jx-slide-in {
     from { transform: translateY(-16px); opacity: 0; }
     to   { transform: translateY(0);     opacity: 1; }
@@ -951,6 +1057,55 @@ body.dark .jx-settings-radio span {
     color: #bbb;
 }
 
+.jx-settings-choice-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.jx-settings-swatch-option {
+    display: grid;
+    grid-template-columns: auto 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    border-radius: 10px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+body.dark .jx-settings-swatch-option {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.jx-settings-swatch-option input {
+    margin: 0;
+}
+
+.jx-settings-swatch-option strong,
+.jx-settings-swatch-option span {
+    display: block;
+}
+
+.jx-settings-swatch-option span {
+    font-size: 12px;
+    color: #777;
+}
+
+body.dark .jx-settings-swatch-option span {
+    color: #bbb;
+}
+
+.jx-settings-swatch {
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
 @media (max-width: 640px) {
     header {
         padding-top: 58px;
@@ -977,13 +1132,43 @@ body.dark .jx-settings-radio span {
         padding: 5px 10px;
     }
 
-    .jx-modal-box--settings {
-        width: calc(100% - 24px);
-        padding: 22px 18px;
+    .jx-settings-page {
+        padding: 18px 14px 24px;
+    }
+
+    .jx-settings-topbar {
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .jx-settings-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .jx-settings-sidebar {
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 10px;
     }
 
     .jx-modal-actions {
         flex-wrap: wrap;
+    }
+
+    .jx-settings-panel {
+        padding: 16px;
+    }
+
+    .jx-settings-swatch-option {
+        grid-template-columns: auto 36px minmax(0, 1fr);
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .jx-settings-swatch {
+        width: 36px;
+        height: 22px;
     }
 }
 
