@@ -39,6 +39,18 @@
     const themeToggle = document.getElementById('theme-toggle');
     const LIGHT_BG_KEY = 'jamex-light-bg';
     const DARK_BG_KEY = 'jamex-dark-bg';
+    const PAGE_THEME_AUTOMATIONS_KEY = 'jamex-page-theme-automations';
+    const PAGE_THEME_AUTOMATION_PAGES = [
+        { value: 'index.html', label: 'Homepage' },
+        { value: 'events.html', label: 'Events' },
+        { value: 'news.html', label: 'News' },
+        { value: 'games.html', label: 'Games' },
+        { value: 'hall-of-fame.html', label: 'Hall of Fame' },
+        { value: 'products.html', label: 'Products' },
+        { value: 'partners.html', label: 'Partners' },
+        { value: 'our-team.html', label: 'Our Team' },
+        { value: 'feedback.html', label: 'Feedback' },
+    ];
     const systemDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const getLightBackgroundPreference = () => {
         const stored = localStorage.getItem(LIGHT_BG_KEY);
@@ -59,45 +71,99 @@
         document.body.classList.toggle('dark', dark);
     };
 
-    const updateToggleLabel = () => {
-        if (!themeToggle) return;
-        const stored = localStorage.getItem('dark-mode');
-        if (stored === null) {
-            themeToggle.textContent = '🌓';
-        } else if (stored === '1') {
-            themeToggle.textContent = '🌙';
-        } else {
-            themeToggle.textContent = '☀️';
+    const getPageThemeAutomations = () => {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(PAGE_THEME_AUTOMATIONS_KEY) || '{}');
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (e) {
+            return {};
         }
     };
 
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
+    const setPageThemeAutomations = automations => {
+        localStorage.setItem(PAGE_THEME_AUTOMATIONS_KEY, JSON.stringify(automations));
+    };
+
+    let pageThemeAutomationMode = (() => {
+        const automations = getPageThemeAutomations();
+        const mode = automations[current];
+        return mode === 'dark' || mode === 'light' ? mode : null;
+    })();
+    let pageThemeAutomationSuppressed = false;
+
+    const getEffectiveDarkState = () => {
+        if (pageThemeAutomationMode && !pageThemeAutomationSuppressed) {
+            return pageThemeAutomationMode === 'dark';
+        }
+        const stored = localStorage.getItem('dark-mode');
+        if (stored !== null) return stored === '1';
+        return systemDark();
+    };
+
+    const applyCurrentTheme = () => {
+        applyTheme(getEffectiveDarkState());
+    };
+
+    const cycleTheme = () => {
+        if (pageThemeAutomationMode && !pageThemeAutomationSuppressed) {
+            const currentDark = getEffectiveDarkState();
+            pageThemeAutomationSuppressed = true;
+            const nextDark = !currentDark;
+            localStorage.setItem('dark-mode', nextDark ? '1' : '0');
+            applyTheme(nextDark);
+            updateToggleLabel();
+            return;
+        }
+        const stored = localStorage.getItem('dark-mode');
+        if (stored === null) {
+            const newDark = !systemDark();
+            localStorage.setItem('dark-mode', newDark ? '1' : '0');
+            applyTheme(newDark);
+        } else if (stored === '1') {
+            localStorage.setItem('dark-mode', '0');
+            applyTheme(false);
+        } else {
+            localStorage.removeItem('dark-mode');
+            applyTheme(systemDark());
+        }
+        updateToggleLabel();
+    };
+
+    const updateToggleLabel = () => {
+        let label = '🌓';
+        if (pageThemeAutomationMode && !pageThemeAutomationSuppressed) {
+            label = getEffectiveDarkState() ? '🌙' : '☀️';
+        } else {
             const stored = localStorage.getItem('dark-mode');
             if (stored === null) {
-                const newDark = !systemDark();
-                localStorage.setItem('dark-mode', newDark ? '1' : '0');
-                applyTheme(newDark);
+                label = '🌓';
             } else if (stored === '1') {
-                localStorage.setItem('dark-mode', '0');
-                applyTheme(false);
+                label = '🌙';
             } else {
-                localStorage.removeItem('dark-mode');
-                applyTheme(systemDark());
+                label = '☀️';
             }
-            updateToggleLabel();
+        }
+        if (themeToggle) themeToggle.textContent = label;
+        document.querySelectorAll('.jx-settings-theme-toggle').forEach(btn => {
+            btn.textContent = label;
         });
+    };
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', cycleTheme);
     }
 
     applyBackgroundPreferences();
 
     const storedTheme = localStorage.getItem('dark-mode');
-    if (storedTheme !== null) {
+    if (pageThemeAutomationMode) {
+        applyCurrentTheme();
+    } else if (storedTheme !== null) {
         applyTheme(storedTheme === '1');
     } else {
         applyTheme(systemDark());
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (localStorage.getItem('dark-mode') === null) {
+            if (localStorage.getItem('dark-mode') === null && (!pageThemeAutomationMode || pageThemeAutomationSuppressed)) {
                 applyTheme(e.matches);
                 updateToggleLabel();
             }
@@ -579,15 +645,13 @@
                     statBtn.textContent = String.fromCodePoint(0x1F4CA) + ' My activity';
                     statBtn.addEventListener('click', () => renderView('activity'));
 
-                    const resetBtn = document.createElement('button');
-                    resetBtn.className = 'jx-btn jx-btn--secondary jx-profile-row-btn';
-                    resetBtn.textContent = String.fromCodePoint(0x1F512) + ' Reset password';
-                    resetBtn.addEventListener('click', () => renderView('reset'));
-
-                    const emailBtn = document.createElement('button');
-                    emailBtn.className = 'jx-btn jx-btn--secondary jx-profile-row-btn';
-                    emailBtn.textContent = (emailValue ? String.fromCodePoint(0x2709, 0xFE0F) + ' Change email' : String.fromCodePoint(0x2709, 0xFE0F) + ' Add email');
-                    emailBtn.addEventListener('click', () => renderView('email'));
+                    const settingsBtn = document.createElement('button');
+                    settingsBtn.className = 'jx-btn jx-btn--secondary jx-profile-row-btn';
+                    settingsBtn.textContent = String.fromCodePoint(0x2699, 0xFE0F) + ' Account settings';
+                    settingsBtn.addEventListener('click', () => {
+                        closeModal(overlay);
+                        openSettingsModal('account');
+                    });
 
                     const emailNote = document.createElement('p');
                     emailNote.className = 'jx-modal-hint jx-modal-hint--center';
@@ -614,8 +678,7 @@
                     closeBtn.addEventListener('click', () => closeModal(overlay));
 
                     box.appendChild(statBtn);
-                    box.appendChild(resetBtn);
-                    box.appendChild(emailBtn);
+                    box.appendChild(settingsBtn);
                     box.appendChild(emailNote);
                     actions.appendChild(logoutBtn);
                     actions.appendChild(closeBtn);
@@ -1288,10 +1351,13 @@
         }
     }
 
-    function openSettingsModal() {
+    function openSettingsModal(initialTab) {
         const existing = document.getElementById('jamex-settings-modal');
         if (existing) {
             if (existing.dataset.closing !== 'true') {
+                const requestedTab = initialTab || existing.dataset.activeTab || 'appearance';
+                const requestedButton = existing.querySelector('.jx-settings-tab[data-tab-id="' + requestedTab + '"]');
+                if (requestedButton) requestedButton.click();
                 const firstInput = existing.querySelector('.jx-settings-back, .jx-settings-tab, .jx-modal-input, input[type="radio"]');
                 if (firstInput) firstInput.focus();
             }
@@ -1312,11 +1378,20 @@
         const topbar = document.createElement('div');
         topbar.className = 'jx-settings-topbar';
 
+        const topbarMain = document.createElement('div');
+        topbarMain.className = 'jx-settings-topbar-main';
+
         const backBtn = document.createElement('button');
         backBtn.className = 'jx-btn jx-btn--secondary jx-settings-back';
         backBtn.type = 'button';
         backBtn.textContent = String.fromCodePoint(0x21A9, 0xFE0F) + ' Back';
         backBtn.addEventListener('click', () => closeModal(overlay));
+
+        const settingsThemeBtn = document.createElement('button');
+        settingsThemeBtn.className = 'jx-settings-theme-toggle';
+        settingsThemeBtn.type = 'button';
+        settingsThemeBtn.setAttribute('aria-label', 'Toggle theme');
+        settingsThemeBtn.addEventListener('click', cycleTheme);
 
         const hero = document.createElement('div');
         hero.className = 'jx-settings-hero';
@@ -1327,12 +1402,14 @@
 
         const sub = document.createElement('p');
         sub.className = 'jx-modal-sub';
-        sub.textContent = 'Manage your account details and choose how the site looks in light and dark mode.';
+        sub.textContent = 'Customise your account and the look and feel of the website';
 
+        topbarMain.appendChild(backBtn);
         hero.appendChild(title);
         hero.appendChild(sub);
-        topbar.appendChild(backBtn);
-        topbar.appendChild(hero);
+        topbarMain.appendChild(hero);
+        topbar.appendChild(topbarMain);
+        topbar.appendChild(settingsThemeBtn);
 
         const layout = document.createElement('div');
         layout.className = 'jx-settings-layout';
@@ -1347,6 +1424,7 @@
         const tabs = {};
 
         function activateTab(tabId) {
+            overlay.dataset.activeTab = tabId;
             Object.keys(panels).forEach(key => {
                 const active = key === tabId;
                 panels[key].hidden = !active;
@@ -1360,6 +1438,7 @@
             btn.className = 'jx-settings-tab';
             btn.type = 'button';
             btn.textContent = label;
+            btn.dataset.tabId = tabId;
             btn.setAttribute('role', 'tab');
             btn.setAttribute('aria-selected', 'false');
             btn.addEventListener('click', () => activateTab(tabId));
@@ -1371,6 +1450,7 @@
             const panel = document.createElement('section');
             panel.className = 'jx-settings-panel';
             panel.setAttribute('role', 'tabpanel');
+            panel.hidden = true;
 
             const heading = document.createElement('h3');
             heading.className = 'jx-settings-heading';
@@ -1389,6 +1469,7 @@
 
         createTab('account', String.fromCodePoint(0x1F464) + ' Account');
         createTab('appearance', String.fromCodePoint(0x1F3A8) + ' Appearance');
+        createTab('automations', String.fromCodePoint(0x1F916) + ' Automations');
 
         const accountSection = createPanel('account', 'Account settings', 'Update and reveal your saved account details from one place.');
 
@@ -1665,19 +1746,138 @@
         appearanceSection.appendChild(createBackgroundCard('jx-light-background', 'Light mode background', LIGHT_BG_KEY, {
             defaultValue: 'mint',
             items: [
-                { value: 'white', label: 'Pure White', description: '', swatch: '#ffffff', borderColor: '#cfcfcf' },
                 { value: 'mint', label: 'Minty Green', description: 'Default', swatch: '#ebfff4', borderColor: '#9ed6b6' },
+                { value: 'white', label: 'Pure White', description: '', swatch: '#ffffff', borderColor: '#cfcfcf' },
             ],
         }));
         appearanceSection.appendChild(createBackgroundCard('jx-dark-background', 'Dark mode background', DARK_BG_KEY, {
             defaultValue: 'stone',
             items: [
-                { value: 'black', label: 'Super Black', description: '', swatch: '#000000', borderColor: '#555555' },
                 { value: 'stone', label: 'Stone Grey', description: 'Default', swatch: '#363636', borderColor: '#707070' },
+                { value: 'black', label: 'Super Black', description: '', swatch: '#000000', borderColor: '#555555' },
             ],
         }));
 
-        activateTab('account');
+        const automationsSection = createPanel('automations', 'Theme automations', 'Automatically open specific pages in a chosen theme. You can still switch manually after the page loads.');
+
+        const automationCard = document.createElement('div');
+        automationCard.className = 'jx-settings-card';
+        const automationTitle = document.createElement('h4');
+        automationTitle.className = 'jx-settings-card-title';
+        automationTitle.textContent = 'Page theme rules';
+        const automationHint = document.createElement('p');
+        automationHint.className = 'jx-modal-hint';
+        automationHint.textContent = 'Create one or more rules like "Open Games in dark mode".';
+        const automationList = document.createElement('div');
+        automationList.className = 'jx-settings-automation-list';
+        const automationEmpty = document.createElement('p');
+        automationEmpty.className = 'jx-modal-hint';
+        automationEmpty.textContent = 'No page theme automations yet.';
+        const automationActions = document.createElement('div');
+        automationActions.className = 'jx-modal-actions';
+        const addAutomationBtn = document.createElement('button');
+        addAutomationBtn.className = 'jx-btn jx-btn--secondary';
+        addAutomationBtn.type = 'button';
+        addAutomationBtn.textContent = 'Add automation';
+
+        const createAutomationSelect = (items, value) => {
+            const select = document.createElement('select');
+            select.className = 'jx-settings-automation-select';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.value;
+                option.textContent = item.label;
+                if (item.value === value) option.selected = true;
+                select.appendChild(option);
+            });
+            return select;
+        };
+
+        const syncPageAutomationState = () => {
+            const nextAutomations = {};
+            automationList.querySelectorAll('.jx-settings-automation-row').forEach(row => {
+                const pageValue = row.querySelector('[data-role="page"]').value;
+                const themeValue = row.querySelector('[data-role="theme"]').value;
+                if (pageValue && (themeValue === 'dark' || themeValue === 'light')) {
+                    nextAutomations[pageValue] = themeValue;
+                }
+            });
+            setPageThemeAutomations(nextAutomations);
+            pageThemeAutomationMode = nextAutomations[current] === 'dark' || nextAutomations[current] === 'light'
+                ? nextAutomations[current]
+                : null;
+            pageThemeAutomationSuppressed = false;
+            applyCurrentTheme();
+            updateToggleLabel();
+            automationEmpty.style.display = automationList.children.length ? 'none' : '';
+        };
+
+        const addAutomationRow = (pageValue, themeValue) => {
+            const row = document.createElement('div');
+            row.className = 'jx-settings-automation-row';
+
+            const openLabel = document.createElement('span');
+            openLabel.className = 'jx-settings-automation-copy';
+            openLabel.textContent = 'Open';
+
+            const pageSelect = createAutomationSelect(PAGE_THEME_AUTOMATION_PAGES, pageValue || 'games.html');
+            pageSelect.dataset.role = 'page';
+
+            const inLabel = document.createElement('span');
+            inLabel.className = 'jx-settings-automation-copy';
+            inLabel.textContent = 'in';
+
+            const themeSelect = createAutomationSelect([
+                { value: 'light', label: 'light mode' },
+                { value: 'dark', label: 'dark mode' },
+            ], themeValue || 'dark');
+            themeSelect.dataset.role = 'theme';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'jx-btn jx-btn--secondary jx-settings-automation-remove';
+            removeBtn.type = 'button';
+            removeBtn.textContent = 'Remove';
+            removeBtn.addEventListener('click', () => {
+                row.remove();
+                syncPageAutomationState();
+            });
+
+            pageSelect.addEventListener('change', syncPageAutomationState);
+            themeSelect.addEventListener('change', syncPageAutomationState);
+
+            row.appendChild(openLabel);
+            row.appendChild(pageSelect);
+            row.appendChild(inLabel);
+            row.appendChild(themeSelect);
+            row.appendChild(removeBtn);
+            automationList.appendChild(row);
+            syncPageAutomationState();
+        };
+
+        addAutomationBtn.addEventListener('click', () => addAutomationRow());
+
+        const savedAutomations = getPageThemeAutomations();
+        const savedAutomationEntries = Object.entries(savedAutomations)
+            .filter(entry => entry[1] === 'dark' || entry[1] === 'light');
+
+        if (savedAutomationEntries.length) {
+            savedAutomationEntries.forEach(([pageValue, themeValue]) => addAutomationRow(pageValue, themeValue));
+        } else {
+            syncPageAutomationState();
+        }
+
+        automationActions.appendChild(addAutomationBtn);
+        automationCard.appendChild(automationTitle);
+        automationCard.appendChild(automationHint);
+        automationCard.appendChild(automationList);
+        automationCard.appendChild(automationEmpty);
+        automationCard.appendChild(automationActions);
+        automationsSection.appendChild(automationCard);
+
+        updateToggleLabel();
+        settingsThemeBtn.textContent = themeToggle ? themeToggle.textContent : '🌓';
+
+        activateTab(initialTab || 'appearance');
 
         layout.appendChild(sidebar);
         layout.appendChild(content);
