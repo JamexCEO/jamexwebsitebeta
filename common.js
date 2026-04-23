@@ -40,6 +40,7 @@
     const LIGHT_BG_KEY = 'jamex-light-bg';
     const DARK_BG_KEY = 'jamex-dark-bg';
     const PAGE_THEME_AUTOMATIONS_KEY = 'jamex-page-theme-automations';
+    const SETTINGS_THEME_PAGE = '__settings__';
     const PAGE_THEME_AUTOMATION_PAGES = [
         { value: 'index.html', label: 'Homepage' },
         { value: 'events.html', label: 'Events' },
@@ -50,6 +51,7 @@
         { value: 'partners.html', label: 'Partners' },
         { value: 'our-team.html', label: 'Our Team' },
         { value: 'feedback.html', label: 'Feedback' },
+        { value: SETTINGS_THEME_PAGE, label: 'Settings' },
     ];
     const systemDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const getLightBackgroundPreference = () => {
@@ -84,12 +86,25 @@
         localStorage.setItem(PAGE_THEME_AUTOMATIONS_KEY, JSON.stringify(automations));
     };
 
-    let pageThemeAutomationMode = (() => {
+    const getAutomationThemeMode = pageKey => {
         const automations = getPageThemeAutomations();
-        const mode = automations[current];
+        const mode = automations[pageKey];
         return mode === 'dark' || mode === 'light' ? mode : null;
-    })();
+    };
+
+    let activeThemePage = current;
+    let pageThemeAutomationMode = getAutomationThemeMode(activeThemePage);
     let pageThemeAutomationSuppressed = false;
+
+    const setThemeAutomationContext = (pageKey, options) => {
+        activeThemePage = pageKey || current;
+        pageThemeAutomationMode = getAutomationThemeMode(activeThemePage);
+        if (!options || options.resetSuppression !== false) {
+            pageThemeAutomationSuppressed = false;
+        }
+        applyCurrentTheme();
+        updateToggleLabel();
+    };
 
     const getEffectiveDarkState = () => {
         if (pageThemeAutomationMode && !pageThemeAutomationSuppressed) {
@@ -1309,6 +1324,9 @@
         if (!overlay || overlay.dataset.closing === 'true') return;
         overlay.dataset.closing = 'true';
         overlay.classList.add('jx-modal-closing');
+        if (overlay.id === 'jamex-settings-modal') {
+            setThemeAutomationContext(current);
+        }
         setTimeout(() => overlay.remove(), 200);
     }
 
@@ -1371,6 +1389,8 @@
         overlay.id = 'jamex-settings-modal';
         overlay.className = 'jx-modal-overlay jx-settings-overlay';
         overlay.dataset.closing = 'false';
+
+        setThemeAutomationContext(SETTINGS_THEME_PAGE);
 
         const page = document.createElement('div');
         page.className = 'jx-settings-page';
@@ -1803,12 +1823,7 @@
                 }
             });
             setPageThemeAutomations(nextAutomations);
-            pageThemeAutomationMode = nextAutomations[current] === 'dark' || nextAutomations[current] === 'light'
-                ? nextAutomations[current]
-                : null;
-            pageThemeAutomationSuppressed = false;
-            applyCurrentTheme();
-            updateToggleLabel();
+            setThemeAutomationContext(activeThemePage);
             automationEmpty.style.display = automationList.children.length ? 'none' : '';
         };
 
