@@ -37,6 +37,7 @@
     // Cycle when system is light: Auto(🌓) → Dark(🌙) → Light(☀️) → Auto(🌓)
 
     const themeToggle = document.getElementById('theme-toggle');
+    const ACCOUNT_SETTINGS_KEY = 'jamex-account-settings';
     const LIGHT_BG_KEY = 'jamex-light-bg';
     const DARK_BG_KEY = 'jamex-dark-bg';
     const PAGE_THEME_AUTOMATIONS_KEY = 'jamex-page-theme-automations';
@@ -54,13 +55,97 @@
         { value: SETTINGS_THEME_PAGE, label: 'Settings' },
     ];
     const systemDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const normalizeThemeMode = value => value === '0' || value === '1' ? value : null;
+    const normalizeLightBg = value => value === 'white' ? 'white' : 'mint';
+    const normalizeDarkBg = value => value === 'black' ? 'black' : 'stone';
+    const normalizePageThemeAutomations = value => {
+        if (!value || typeof value !== 'object') return {};
+        const next = {};
+        Object.keys(value).forEach(key => {
+            const mode = value[key];
+            if (typeof key === 'string' && (mode === 'dark' || mode === 'light')) {
+                next[key] = mode;
+            }
+        });
+        return next;
+    };
+    const normalizeAccountSettings = value => {
+        const raw = value && typeof value === 'object' ? value : {};
+        return {
+            darkMode: normalizeThemeMode(raw.darkMode),
+            lightBg: normalizeLightBg(raw.lightBg),
+            darkBg: normalizeDarkBg(raw.darkBg),
+            pageThemeAutomations: normalizePageThemeAutomations(raw.pageThemeAutomations),
+        };
+    };
+    const readLegacySettings = () => normalizeAccountSettings({
+        darkMode: localStorage.getItem('dark-mode'),
+        lightBg: localStorage.getItem(LIGHT_BG_KEY),
+        darkBg: localStorage.getItem(DARK_BG_KEY),
+        pageThemeAutomations: (() => {
+            try {
+                return JSON.parse(localStorage.getItem(PAGE_THEME_AUTOMATIONS_KEY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        })(),
+    });
+    const isAccountSessionActive = () => !!localStorage.getItem('jamex-password') && !!localStorage.getItem('jamex-username');
+    const getCachedAccountSettings = () => {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(ACCOUNT_SETTINGS_KEY) || 'null');
+            return normalizeAccountSettings(parsed || readLegacySettings());
+        } catch (e) {
+            return readLegacySettings();
+        }
+    };
+    const cacheAccountSettings = settings => {
+        const normalized = normalizeAccountSettings(settings);
+        localStorage.setItem(ACCOUNT_SETTINGS_KEY, JSON.stringify(normalized));
+        if (normalized.darkMode === null) {
+            localStorage.removeItem('dark-mode');
+        } else {
+            localStorage.setItem('dark-mode', normalized.darkMode);
+        }
+        localStorage.setItem(LIGHT_BG_KEY, normalized.lightBg);
+        localStorage.setItem(DARK_BG_KEY, normalized.darkBg);
+        localStorage.setItem(PAGE_THEME_AUTOMATIONS_KEY, JSON.stringify(normalized.pageThemeAutomations));
+        return normalized;
+    };
+    const getActiveAccountSettings = () => isAccountSessionActive() ? getCachedAccountSettings() : readLegacySettings();
+    let remoteSettingsSyncAvailable = true;
+
+    function queueAccountSettingsSync(settings) {
+        if (!isAccountSessionActive() || !remoteSettingsSyncAvailable) return Promise.resolve();
+        const username = localStorage.getItem('jamex-username');
+        if (!username) return Promise.resolve();
+        return sbFetch(
+            'accounts?username=eq.' + encodeURIComponent(username),
+            {
+                method: 'PATCH',
+                prefer: 'return=minimal',
+                body: JSON.stringify({ settings: normalizeAccountSettings(settings) }),
+            }
+        ).catch(e => {
+            const message = e && e.message ? e.message : '';
+            if (/settings/i.test(message) && /column|schema/i.test(message)) {
+                remoteSettingsSyncAvailable = false;
+            }
+            console.warn('Could not sync account settings to Supabase:', e);
+        });
+    }
+
+    function persistAccountSettings(nextSettings) {
+        const normalized = cacheAccountSettings(nextSettings);
+        if (isAccountSessionActive()) queueAccountSettingsSync(normalized);
+        return normalized;
+    }
+
     const getLightBackgroundPreference = () => {
-        const stored = localStorage.getItem(LIGHT_BG_KEY);
-        return stored === 'white' ? 'white' : 'mint';
+        return getActiveAccountSettings().lightBg;
     };
     const getDarkBackgroundPreference = () => {
-        const stored = localStorage.getItem(DARK_BG_KEY);
-        return stored === 'black' ? 'black' : 'stone';
+        return getActiveAccountSettings().darkBg;
     };
 
     const applyBackgroundPreferences = () => {
@@ -74,16 +159,15 @@
     };
 
     const getPageThemeAutomations = () => {
-        try {
-            const parsed = JSON.parse(localStorage.getItem(PAGE_THEME_AUTOMATIONS_KEY) || '{}');
-            return parsed && typeof parsed === 'object' ? parsed : {};
-        } catch (e) {
-            return {};
-        }
+        return getActiveAccountSettings().pageThemeAutomations;
     };
 
     const setPageThemeAutomations = automations => {
-        localStorage.setItem(PAGE_THEME_AUTOMATIONS_KEY, JSON.stringify(automations));
+        const currentSettings = getActiveAccountSettings();
+        persistAccountSettings({
+            ...currentSettings,
+            pageThemeAutomations: normalizePageThemeAutomations(automations),
+        });
     };
 
     const getAutomationThemeMode = pageKey => {
@@ -124,21 +208,33 @@
             const currentDark = getEffectiveDarkState();
             pageThemeAutomationSuppressed = true;
             const nextDark = !currentDark;
-            localStorage.setItem('dark-mode', nextDark ? '1' : '0');
+            persistAccountSettings({
+                ...getActiveAccountSettings(),
+                darkMode: nextDark ? '1' : '0',
+            });
             applyTheme(nextDark);
             updateToggleLabel();
             return;
         }
-        const stored = localStorage.getItem('dark-mode');
+        const stored = getActiveAccountSettings().darkMode;
         if (stored === null) {
             const newDark = !systemDark();
-            localStorage.setItem('dark-mode', newDark ? '1' : '0');
+            persistAccountSettings({
+                ...getActiveAccountSettings(),
+                darkMode: newDark ? '1' : '0',
+            });
             applyTheme(newDark);
         } else if (stored === '1') {
-            localStorage.setItem('dark-mode', '0');
+            persistAccountSettings({
+                ...getActiveAccountSettings(),
+                darkMode: '0',
+            });
             applyTheme(false);
         } else {
-            localStorage.removeItem('dark-mode');
+            persistAccountSettings({
+                ...getActiveAccountSettings(),
+                darkMode: null,
+            });
             applyTheme(systemDark());
         }
         updateToggleLabel();
@@ -149,7 +245,7 @@
         if (pageThemeAutomationMode && !pageThemeAutomationSuppressed) {
             label = getEffectiveDarkState() ? '🌙' : '☀️';
         } else {
-            const stored = localStorage.getItem('dark-mode');
+            const stored = getActiveAccountSettings().darkMode;
             if (stored === null) {
                 label = '🌓';
             } else if (stored === '1') {
@@ -170,7 +266,7 @@
 
     applyBackgroundPreferences();
 
-    const storedTheme = localStorage.getItem('dark-mode');
+    const storedTheme = getActiveAccountSettings().darkMode;
     if (pageThemeAutomationMode) {
         applyCurrentTheme();
     } else if (storedTheme !== null) {
@@ -178,7 +274,7 @@
     } else {
         applyTheme(systemDark());
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (localStorage.getItem('dark-mode') === null && (!pageThemeAutomationMode || pageThemeAutomationSuppressed)) {
+            if (getActiveAccountSettings().darkMode === null && (!pageThemeAutomationMode || pageThemeAutomationSuppressed)) {
                 applyTheme(e.matches);
                 updateToggleLabel();
             }
@@ -424,7 +520,7 @@
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
     }
 
-    function cacheAccountRecord(username, password, email) {
+    function cacheAccountRecord(username, password, email, settings) {
         localStorage.setItem('jamex-accounts-cache-' + username, password);
         localStorage.setItem('jamex-password', password);
         localStorage.setItem('jamex-username', username);
@@ -432,6 +528,8 @@
             localStorage.setItem('jamex-email', email);
             localStorage.setItem('jamex-account-email-' + email, username);
         }
+        cacheAccountSettings(settings || getCachedAccountSettings());
+        setThemeAutomationContext(activeThemePage || current);
     }
 
     const JamexAccount = {
@@ -449,10 +547,23 @@
             const identRaw = String(identifier || '').trim();
             const ident = identRaw.includes('@') ? identRaw.toLowerCase() : identRaw;
             if (!ident) return null;
-            const rows = await sbFetch(
-                'accounts?or=(username.eq.' + encodeURIComponent(ident) + ',email.eq.' + encodeURIComponent(ident) + ')&select=username,password,email'
-            );
-            return rows && rows.length > 0 ? rows[0] : null;
+            try {
+                const rows = await sbFetch(
+                    'accounts?or=(username.eq.' + encodeURIComponent(ident) + ',email.eq.' + encodeURIComponent(ident) + ')&select=username,password,email,settings'
+                );
+                remoteSettingsSyncAvailable = true;
+                return rows && rows.length > 0 ? rows[0] : null;
+            } catch (e) {
+                const message = e && e.message ? e.message : '';
+                if (/settings/i.test(message) && /column|schema/i.test(message)) {
+                    remoteSettingsSyncAvailable = false;
+                    const fallbackRows = await sbFetch(
+                        'accounts?or=(username.eq.' + encodeURIComponent(ident) + ',email.eq.' + encodeURIComponent(ident) + ')&select=username,password,email'
+                    );
+                    return fallbackRows && fallbackRows.length > 0 ? fallbackRows[0] : null;
+                }
+                throw e;
+            }
         },
 
         findAccountByEmail: async (email) => {
@@ -483,19 +594,35 @@
                     if (existing.password !== pswd) {
                         return 'Incorrect password for that account.';
                     }
-                    cacheAccountRecord(existing.username, pswd, existing.email || null);
+                    cacheAccountRecord(existing.username, pswd, existing.email || null, existing.settings || null);
                     return null;
                 } else {
                     // New username — register in Supabase
                     if (!mail) return 'Enter an email to create a new account.';
                     const existingEmail = await JamexAccount.findAccountByEmail(mail);
                     if (existingEmail) return 'That email is already linked to another account.';
-                    await sbFetch('accounts', {
-                        method: 'POST',
-                        prefer: 'return=minimal',
-                    body: JSON.stringify({ username: identRaw, email: mail, password: pswd }),
-                });
-                    cacheAccountRecord(identRaw, pswd, mail);
+                    const initialSettings = readLegacySettings();
+                    try {
+                        await sbFetch('accounts', {
+                            method: 'POST',
+                            prefer: 'return=minimal',
+                            body: JSON.stringify({ username: identRaw, email: mail, password: pswd, settings: initialSettings }),
+                        });
+                        remoteSettingsSyncAvailable = true;
+                    } catch (e) {
+                        const message = e && e.message ? e.message : '';
+                        if (/settings/i.test(message) && /column|schema/i.test(message)) {
+                            remoteSettingsSyncAvailable = false;
+                            await sbFetch('accounts', {
+                                method: 'POST',
+                                prefer: 'return=minimal',
+                                body: JSON.stringify({ username: identRaw, email: mail, password: pswd }),
+                            });
+                        } else {
+                            throw e;
+                        }
+                    }
+                    cacheAccountRecord(identRaw, pswd, mail, initialSettings);
                 }
             } catch (e) {
                 console.warn('Supabase account check failed, falling back to local:', e);
@@ -505,11 +632,11 @@
                 const cached = localStorage.getItem('jamex-accounts-cache-' + cacheKey);
                 if (cached !== null) {
                     if (cached !== pswd) return 'Incorrect password for that account.';
-                    cacheAccountRecord(cacheKey, pswd, mail || localStorage.getItem('jamex-email'));
+                    cacheAccountRecord(cacheKey, pswd, mail || localStorage.getItem('jamex-email'), getCachedAccountSettings());
                     return null;
                 }
                 if (!mail) return 'Enter an email to create a new account.';
-                cacheAccountRecord(identRaw, pswd, mail);
+                cacheAccountRecord(identRaw, pswd, mail, readLegacySettings());
             }
 
             return null; // success
@@ -525,7 +652,7 @@
                     body: JSON.stringify({ password: newPassword }),
                 }
             );
-            cacheAccountRecord(username, newPassword, email || localStorage.getItem('jamex-email'));
+            cacheAccountRecord(username, newPassword, email || localStorage.getItem('jamex-email'), getCachedAccountSettings());
         },
 
         updatePasswordByEmail: async (email, newPassword) => {
@@ -540,7 +667,7 @@
                     body: JSON.stringify({ password: newPassword }),
                 }
             );
-            cacheAccountRecord(account.username, newPassword, cleanEmail);
+            cacheAccountRecord(account.username, newPassword, cleanEmail, getCachedAccountSettings());
         },
 
         updateEmail: async (username, email) => {
@@ -558,13 +685,14 @@
                     body: JSON.stringify({ email: cleanEmail }),
                 }
             );
-            cacheAccountRecord(username, JamexAccount.getpassword() || '', cleanEmail);
+            cacheAccountRecord(username, JamexAccount.getpassword() || '', cleanEmail, getCachedAccountSettings());
         },
 
         logout: () => {
             localStorage.removeItem('jamex-password');
             localStorage.removeItem('jamex-username');
             localStorage.removeItem('jamex-email');
+            setThemeAutomationContext(current);
         },
     };
     window.JamexAccount = JamexAccount;
@@ -1330,6 +1458,20 @@
         setTimeout(() => overlay.remove(), 200);
     }
 
+    async function refreshSignedInAccountSettings() {
+        if (!JamexAccount.isLoggedIn()) return;
+        const username = JamexAccount.getusername();
+        const password = JamexAccount.getpassword();
+        if (!username || !password) return;
+        try {
+            const account = await JamexAccount.findAccountByIdentifier(username);
+            if (!account || account.password !== password) return;
+            cacheAccountRecord(account.username, password, account.email || null, account.settings || null);
+        } catch (e) {
+            console.warn('Could not refresh signed-in account settings:', e);
+        }
+    }
+
     function buildLabeledInput(id, labelText, type, placeholder, autocomplete) {
         const label = document.createElement('label');
         label.className = 'jx-modal-label';
@@ -1738,7 +1880,11 @@
                 input.value = option.value;
                 input.checked = currentValue === option.value;
                 input.addEventListener('change', () => {
-                    localStorage.setItem(storageKey, option.value);
+                    const currentSettings = getActiveAccountSettings();
+                    persistAccountSettings({
+                        ...currentSettings,
+                        [storageKey === LIGHT_BG_KEY ? 'lightBg' : 'darkBg']: option.value,
+                    });
                     applyTheme(document.body.classList.contains('dark'));
                 });
                 const swatch = document.createElement('span');
@@ -1950,6 +2096,12 @@
         }
         return res.json();
     }
+
+    refreshSignedInAccountSettings();
+    window.addEventListener('focus', refreshSignedInAccountSettings);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') refreshSignedInAccountSettings();
+    });
 
     // =========================================================================
     // --- Likes & Comments (Supabase-backed, shared across all devices) ---
