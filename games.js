@@ -281,7 +281,7 @@
         }
     }
 
-    function wireManualSave(buttonId, game, getScore, statusId, panelId) {
+    function wireManualSave(buttonId, game, getScore, statusId, panelId, endGame) {
         const button = document.getElementById(buttonId);
         const status = document.getElementById(statusId);
         if (!button) return;
@@ -295,14 +295,28 @@
                 return;
             }
 
+            if (typeof endGame === 'function') {
+                endGame();
+            }
+
             const result = await ScoreStore.save(game, getScore());
             if (status) {
                 status.textContent = result.ok
-                    ? 'High score saved at ' + result.best + '.'
+                    ? 'Game ended. High score saved at ' + result.best + '.'
                     : 'Could not save score yet.';
                 flashStatus(status);
             }
         });
+    }
+
+    function shouldIgnoreGameHotkeys(event) {
+        const target = event.target;
+        if (!target || !(target instanceof Element)) return false;
+        if (target.closest('input, textarea, select, [contenteditable="true"]')) return true;
+        if (document.getElementById('jamex-account-modal')) return true;
+        if (document.getElementById('jamex-settings-modal')) return true;
+        if (document.getElementById('jamex-confirm-modal')) return true;
+        return false;
     }
 
     window.addEventListener('storage', event => {
@@ -378,7 +392,8 @@
             });
         }
 
-        async function finishSnake(message) {
+        async function finishSnake(message, options) {
+            const config = Object.assign({ autoSaveHighScore: true }, options);
             running = false;
             paused = false;
             clearInterval(loopId);
@@ -387,11 +402,18 @@
             pauseButton.textContent = 'Pause Snake';
             status.textContent = message + ' Final score: ' + score + '.';
             flashStatus(status);
-            if (score > ScoreStore.getBest('snake')) {
+            if (config.autoSaveHighScore && score > ScoreStore.getBest('snake')) {
                 await ScoreStore.save('snake', score);
                 status.textContent += isLoggedIn() ? ' New high score saved.' : ' Sign in to save that high score.';
                 flashStatus(status);
             }
+        }
+
+        function endSnakeManually() {
+            if (!running && !paused) return;
+            finishSnake('Game ended.', { autoSaveHighScore: false }).catch(error => {
+                console.error('Snake manual end failed:', error);
+            });
         }
 
         function resetSnake() {
@@ -473,6 +495,7 @@
         }
 
         document.addEventListener('keydown', event => {
+            if (shouldIgnoreGameHotkeys(event)) return;
             if (activeGame !== 'snake-section') return;
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p', 'P'].includes(event.key)) event.preventDefault();
             if (event.key === 'ArrowUp') turn({ x: 0, y: -1 });
@@ -495,7 +518,7 @@
 
         startButton.addEventListener('click', startSnake);
         pauseButton.addEventListener('click', togglePause);
-        wireManualSave('snake-save-btn', 'snake', () => score, 'snake-status', 'snake-section');
+        wireManualSave('snake-save-btn', 'snake', () => score, 'snake-status', 'snake-section', endSnakeManually);
         resetSnake();
     }
 
@@ -706,16 +729,28 @@
             flashStatus(status);
         }
 
+        function endMinesweeperManually() {
+            if (gameOver) return;
+            gameOver = true;
+            paused = false;
+            stopTimer();
+            setPausedOverlay('minesweeper-shell', false);
+            pauseButton.textContent = 'Pause Minesweeper';
+            status.textContent = 'Game ended. Final score: ' + score + '.';
+            flashStatus(status);
+        }
+
         resetButton.addEventListener('click', buildBoard);
         pauseButton.addEventListener('click', togglePause);
         document.addEventListener('keydown', event => {
+            if (shouldIgnoreGameHotkeys(event)) return;
             if (activeGame !== 'minesweeper-section') return;
             if (event.key === 'p' || event.key === 'P') {
                 event.preventDefault();
                 togglePause();
             }
         });
-        wireManualSave('minesweeper-save-btn', 'minesweeper', () => score, 'minesweeper-status', 'minesweeper-section');
+        wireManualSave('minesweeper-save-btn', 'minesweeper', () => score, 'minesweeper-status', 'minesweeper-section', endMinesweeperManually);
         buildBoard();
     }
 
@@ -897,20 +932,28 @@
             }
         }
 
-        async function gameOver() {
+        async function gameOver(options) {
+            const config = Object.assign({ autoSaveHighScore: true, message: 'Game over.' }, options);
             running = false;
             paused = false;
             clearInterval(dropId);
             dropId = null;
             setPausedOverlay('tetris-shell', false);
             pauseButton.textContent = 'Pause Tetris';
-            status.textContent = 'Game over. Final score: ' + score + '.';
+            status.textContent = config.message + ' Final score: ' + score + '.';
             flashStatus(status);
-            if (score > ScoreStore.getBest('tetris')) {
+            if (config.autoSaveHighScore && score > ScoreStore.getBest('tetris')) {
                 await ScoreStore.save('tetris', score);
                 status.textContent += isLoggedIn() ? ' High score saved.' : ' Sign in to save that high score.';
                 flashStatus(status);
             }
+        }
+
+        function endTetrisManually() {
+            if (!running && !paused) return;
+            gameOver({ autoSaveHighScore: false, message: 'Game ended.' }).catch(error => {
+                console.error('Tetris manual end failed:', error);
+            });
         }
 
         async function step() {
@@ -1000,6 +1043,7 @@
         }
 
         document.addEventListener('keydown', event => {
+            if (shouldIgnoreGameHotkeys(event)) return;
             if (activeGame !== 'tetris-section') return;
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar', 'p', 'P'].includes(event.key) || event.code === 'Space') {
                 event.preventDefault();
@@ -1025,7 +1069,7 @@
 
         startButton.addEventListener('click', start);
         pauseButton.addEventListener('click', togglePause);
-        wireManualSave('tetris-save-btn', 'tetris', () => score, 'tetris-status', 'tetris-section');
+        wireManualSave('tetris-save-btn', 'tetris', () => score, 'tetris-status', 'tetris-section', endTetrisManually);
         emptyBoard();
         drawBoard();
     }
@@ -1040,6 +1084,7 @@
         let score = 0;
         let won = false;
         let isAnimating = false;
+        let ended = false;
 
         function initBoardFrame() {
             boardNode.innerHTML = '';
@@ -1120,6 +1165,7 @@
             board = Array.from({ length: 4 }, () => Array(4).fill(0));
             won = false;
             isAnimating = false;
+            ended = false;
             updateScoreDisplay(0);
             const newTiles = [];
             const first = addTile();
@@ -1172,7 +1218,7 @@
         }
 
         function move(direction) {
-            if (activeGame !== 'game-2048-section' || isAnimating) return;
+            if (activeGame !== 'game-2048-section' || isAnimating || ended) return;
             let changed = false;
             let gainedTotal = 0;
             const nextBoard = Array.from({ length: 4 }, () => Array(4).fill(0));
@@ -1231,6 +1277,7 @@
                 flashStatus(status);
                 ScoreStore.save('2048', score);
             } else if (!hasMoves()) {
+                ended = true;
                 status.textContent = 'No more moves. Final score: ' + score + '.';
                 flashStatus(status);
                 ScoreStore.save('2048', score).then(() => {
@@ -1241,6 +1288,14 @@
                 status.textContent = 'Good move. Keep merging.';
                 flashStatus(status);
             }
+        }
+
+        function end2048Manually() {
+            if (ended) return;
+            ended = true;
+            isAnimating = false;
+            status.textContent = 'Game ended. Final score: ' + score + '.';
+            flashStatus(status);
         }
 
         function hasMoves() {
@@ -1256,6 +1311,7 @@
         }
 
         document.addEventListener('keydown', event => {
+            if (shouldIgnoreGameHotkeys(event)) return;
             if (activeGame !== 'game-2048-section') return;
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
                 event.preventDefault();
@@ -1281,7 +1337,7 @@
         resetButton.addEventListener('click', () => resetButton.blur());
         saveButton.addEventListener('click', () => saveButton.blur());
         resetButton.addEventListener('click', resetGame);
-        wireManualSave('game-2048-save-btn', '2048', () => score, 'game-2048-status', 'game-2048-section');
+        wireManualSave('game-2048-save-btn', '2048', () => score, 'game-2048-status', 'game-2048-section', end2048Manually);
         initBoardFrame();
         resetGame();
     }
