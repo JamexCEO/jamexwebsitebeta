@@ -1450,6 +1450,16 @@
 
     function closeModal(overlay) {
         if (!overlay || overlay.dataset.closing === 'true') return;
+        if (overlay.id === 'jamex-settings-modal' && overlay.dataset.dirty === 'true' && overlay.dataset.allowClose !== 'true') {
+            openConfirmModal(
+                'Discard changes?',
+                'Exit without saving your settings changes?',
+                () => {
+                    if (typeof overlay._discardDraft === 'function') overlay._discardDraft();
+                }
+            );
+            return;
+        }
         overlay.dataset.closing = 'true';
         overlay.classList.add('jx-modal-closing');
         if (overlay.id === 'jamex-settings-modal') {
@@ -1458,7 +1468,66 @@
         setTimeout(() => overlay.remove(), 200);
     }
 
+    function openConfirmModal(titleText, bodyText, onConfirm) {
+        const existing = document.getElementById('jamex-confirm-modal');
+        if (existing) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'jamex-confirm-modal';
+        overlay.className = 'jx-modal-overlay';
+        overlay.dataset.closing = 'false';
+
+        const box = document.createElement('div');
+        box.className = 'jx-modal-box';
+
+        const title = document.createElement('h2');
+        title.className = 'jx-modal-title';
+        title.textContent = titleText;
+
+        const body = document.createElement('p');
+        body.className = 'jx-modal-sub';
+        body.textContent = bodyText;
+
+        const actions = document.createElement('div');
+        actions.className = 'jx-modal-actions';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'jx-btn jx-btn--primary';
+        confirmBtn.type = 'button';
+        confirmBtn.textContent = 'Exit without saving';
+        confirmBtn.addEventListener('click', () => {
+            closeModal(overlay);
+            if (onConfirm) onConfirm();
+        });
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'jx-btn jx-btn--secondary';
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.addEventListener('click', () => closeModal(overlay));
+
+        actions.appendChild(confirmBtn);
+        actions.appendChild(cancelBtn);
+        box.appendChild(title);
+        box.appendChild(body);
+        box.appendChild(actions);
+
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(overlay); });
+
+        function escHandler(e) {
+            if (e.key === 'Escape') {
+                closeModal(overlay);
+                document.removeEventListener('keydown', escHandler);
+            }
+        }
+        document.addEventListener('keydown', escHandler);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    }
+
     async function refreshSignedInAccountSettings() {
+        if (document.getElementById('jamex-settings-modal')) return;
         if (!JamexAccount.isLoggedIn()) return;
         const username = JamexAccount.getusername();
         const password = JamexAccount.getpassword();
@@ -1532,7 +1601,53 @@
         overlay.className = 'jx-modal-overlay jx-settings-overlay';
         overlay.dataset.closing = 'false';
 
+        const originalSettings = normalizeAccountSettings(getActiveAccountSettings());
+        let draftSettings = normalizeAccountSettings(originalSettings);
+        let draftThemeAutomationSuppressed = false;
+
+        function areSettingsEqual(a, b) {
+            return JSON.stringify(normalizeAccountSettings(a)) === JSON.stringify(normalizeAccountSettings(b));
+        }
+
+        function getDraftEffectiveDarkState() {
+            const settingsAutomationMode = draftSettings.pageThemeAutomations[SETTINGS_THEME_PAGE];
+            if ((settingsAutomationMode === 'dark' || settingsAutomationMode === 'light') && !draftThemeAutomationSuppressed) {
+                return settingsAutomationMode === 'dark';
+            }
+            if (draftSettings.darkMode !== null) return draftSettings.darkMode === '1';
+            return systemDark();
+        }
+
+        function applyDraftSettings() {
+            cacheAccountSettings(draftSettings);
+            setThemeAutomationContext(SETTINGS_THEME_PAGE, { resetSuppression: false });
+            pageThemeAutomationSuppressed = draftThemeAutomationSuppressed;
+            applyTheme(getDraftEffectiveDarkState());
+            updateToggleLabel();
+        }
+
+        function revertDraftSettings() {
+            draftSettings = normalizeAccountSettings(originalSettings);
+            draftThemeAutomationSuppressed = false;
+            cacheAccountSettings(originalSettings);
+            setThemeAutomationContext(current);
+        }
+
+        overlay._discardDraft = () => {
+            revertDraftSettings();
+            overlay.dataset.allowClose = 'true';
+            closeModal(overlay);
+        };
+
+        function saveDraftSettings() {
+            persistAccountSettings(draftSettings);
+            draftThemeAutomationSuppressed = false;
+            overlay.dataset.allowClose = 'true';
+            closeModal(overlay);
+        }
+
         setThemeAutomationContext(SETTINGS_THEME_PAGE);
+        applyDraftSettings();
 
         const page = document.createElement('div');
         page.className = 'jx-settings-page';
@@ -1549,11 +1664,43 @@
         backBtn.textContent = String.fromCodePoint(0x21A9, 0xFE0F) + ' Back';
         backBtn.addEventListener('click', () => closeModal(overlay));
 
+        const dirtyActions = document.createElement('div');
+        dirtyActions.className = 'jx-settings-dirty-actions';
+        dirtyActions.style.display = 'none';
+
+        const saveExitBtn = document.createElement('button');
+        saveExitBtn.className = 'jx-btn jx-btn--secondary';
+        saveExitBtn.type = 'button';
+        saveExitBtn.textContent = String.fromCodePoint(0x1F4BE) + ' Save and exit';
+        saveExitBtn.addEventListener('click', saveDraftSettings);
+
+        const exitWithoutSavingBtn = document.createElement('button');
+        exitWithoutSavingBtn.className = 'jx-btn jx-btn--danger';
+        exitWithoutSavingBtn.type = 'button';
+        exitWithoutSavingBtn.textContent = String.fromCodePoint(0x21A9, 0xFE0F) + ' Exit without saving';
+        exitWithoutSavingBtn.addEventListener('click', () => {
+            openConfirmModal(
+                'Discard changes?',
+                'Exit without saving your settings changes?',
+                () => overlay._discardDraft()
+            );
+        });
+
+        dirtyActions.appendChild(saveExitBtn);
+        dirtyActions.appendChild(exitWithoutSavingBtn);
+
         const settingsThemeBtn = document.createElement('button');
         settingsThemeBtn.className = 'jx-settings-theme-toggle';
         settingsThemeBtn.type = 'button';
         settingsThemeBtn.setAttribute('aria-label', 'Toggle theme');
-        settingsThemeBtn.addEventListener('click', cycleTheme);
+        settingsThemeBtn.addEventListener('click', () => {
+            const settingsAutomationMode = draftSettings.pageThemeAutomations[SETTINGS_THEME_PAGE];
+            const currentDark = getDraftEffectiveDarkState();
+            draftThemeAutomationSuppressed = !!(settingsAutomationMode && !draftThemeAutomationSuppressed) || draftThemeAutomationSuppressed;
+            draftSettings.darkMode = currentDark ? '0' : '1';
+            applyDraftSettings();
+            updateDirtyState();
+        });
 
         const hero = document.createElement('div');
         hero.className = 'jx-settings-hero';
@@ -1567,6 +1714,7 @@
         sub.textContent = 'Customise your account and the look and feel of the website';
 
         topbarMain.appendChild(backBtn);
+        topbarMain.appendChild(dirtyActions);
         hero.appendChild(title);
         hero.appendChild(sub);
         topbarMain.appendChild(hero);
@@ -1584,6 +1732,14 @@
 
         const panels = {};
         const tabs = {};
+
+        function updateDirtyState() {
+            const dirty = !areSettingsEqual(draftSettings, originalSettings);
+            overlay.dataset.dirty = dirty ? 'true' : 'false';
+            if (!dirty) overlay.dataset.allowClose = 'false';
+            backBtn.style.display = dirty ? 'none' : '';
+            dirtyActions.style.display = dirty ? '' : 'none';
+        }
 
         function activateTab(tabId) {
             overlay.dataset.activeTab = tabId;
@@ -1869,7 +2025,7 @@
             heading.textContent = titleText;
             const group = document.createElement('div');
             group.className = 'jx-settings-choice-grid';
-            const currentValue = localStorage.getItem(storageKey) || options.defaultValue;
+            const currentValue = storageKey === LIGHT_BG_KEY ? draftSettings.lightBg : draftSettings.darkBg;
 
             options.items.forEach(option => {
                 const label = document.createElement('label');
@@ -1880,12 +2036,12 @@
                 input.value = option.value;
                 input.checked = currentValue === option.value;
                 input.addEventListener('change', () => {
-                    const currentSettings = getActiveAccountSettings();
-                    persistAccountSettings({
-                        ...currentSettings,
+                    draftSettings = normalizeAccountSettings({
+                        ...draftSettings,
                         [storageKey === LIGHT_BG_KEY ? 'lightBg' : 'darkBg']: option.value,
                     });
-                    applyTheme(document.body.classList.contains('dark'));
+                    applyDraftSettings();
+                    updateDirtyState();
                 });
                 const swatch = document.createElement('span');
                 swatch.className = 'jx-settings-swatch';
@@ -1968,9 +2124,16 @@
                     nextAutomations[pageValue] = themeValue;
                 }
             });
-            setPageThemeAutomations(nextAutomations);
-            setThemeAutomationContext(activeThemePage);
+            draftSettings = normalizeAccountSettings({
+                ...draftSettings,
+                pageThemeAutomations: nextAutomations,
+            });
+            if (!draftSettings.pageThemeAutomations[SETTINGS_THEME_PAGE]) {
+                draftThemeAutomationSuppressed = false;
+            }
+            applyDraftSettings();
             automationEmpty.style.display = automationList.children.length ? 'none' : '';
+            updateDirtyState();
         };
 
         const addAutomationRow = (pageValue, themeValue) => {
@@ -2017,7 +2180,7 @@
 
         addAutomationBtn.addEventListener('click', () => addAutomationRow());
 
-        const savedAutomations = getPageThemeAutomations();
+        const savedAutomations = draftSettings.pageThemeAutomations;
         const savedAutomationEntries = Object.entries(savedAutomations)
             .filter(entry => entry[1] === 'dark' || entry[1] === 'light');
 
@@ -2037,6 +2200,7 @@
 
         updateToggleLabel();
         settingsThemeBtn.textContent = themeToggle ? themeToggle.textContent : '🌓';
+        updateDirtyState();
 
         activateTab(initialTab || 'appearance');
 

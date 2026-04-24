@@ -680,13 +680,13 @@ body.dark #account-btn.account-btn--signed-in:hover {
 }
 
 #settings-btn:hover {
-    border-color: #ff6701;
-    background: rgba(255, 103, 1, 0.12);
+    border-color: #999;
+    background: rgba(128, 128, 128, 0.14);
     transform: rotate(20deg);
 }
 
 body.dark #settings-btn:hover {
-    background: rgba(255, 192, 0, 0.16);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 /* =========================================================================
@@ -775,6 +775,12 @@ body.dark #settings-btn:hover {
 .jx-settings-back {
     flex: 0 0 auto;
     justify-self: start;
+}
+
+.jx-settings-dirty-actions {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
 }
 
 .jx-settings-theme-toggle {
