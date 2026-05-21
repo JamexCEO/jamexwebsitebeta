@@ -273,6 +273,7 @@ body.dark th, body.dark td {
 }
 .navbar a {
 	display: inline-block;
+	position: relative;
 	background: #e53935;
 	color: #fff;
 	padding: 10px 14px;
@@ -302,10 +303,86 @@ body.dark th, body.dark td {
     transition: 0.15s;
 }
 
+.jx-nav-notification {
+	position: absolute;
+	top: -9px;
+	right: -9px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 22px;
+	height: 22px;
+	padding: 0 6px;
+	border-radius: 999px;
+	background: #fff;
+	color: #e53935;
+	border: 2px solid #e53935;
+	font-size: 12px;
+	font-weight: 800;
+	line-height: 1;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+	pointer-events: none;
+}
+
+.navbar a.active .jx-nav-notification {
+	background: #e53935;
+	color: #fff;
+	border-color: #fff;
+}
+
+.jx-notification-actions {
+	display: flex;
+	justify-content: center;
+	margin: 8px 0 18px;
+}
+
+.jx-notification-action {
+	background: #e53935;
+	color: #fff;
+	border: 2px solid #fff;
+	border-radius: 8px;
+	padding: 8px 12px;
+	font-family: Verdana, sans-serif;
+	font-size: 14px;
+	font-weight: 700;
+	box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+	cursor: pointer;
+	transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.jx-notification-action:hover {
+	background: orange;
+	transform: scale(1.05);
+}
+
+body.dark .jx-notification-action {
+	border-color: #000;
+}
+
+.jx-new-article-marker {
+	display: inline-block;
+	margin-left: 8px;
+	font-size: 0.85em;
+	vertical-align: 0.08em;
+}
+
+.jx-article-read:hover,
+.jx-article-unread:hover {
+	cursor: pointer;
+}
+
 @media (max-width: 520px) {
 	.navbar a {
 		padding: 8px 10px;
 		font-size: 14px;
+	}
+
+	.jx-nav-notification {
+		top: -8px;
+		right: -8px;
+		min-width: 20px;
+		height: 20px;
+		font-size: 11px;
 	}
 }
 

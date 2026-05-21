@@ -501,6 +501,216 @@
         }
     })();
 
+    // --- Article read/unread notifications ---
+    // Keeps article read state in this browser and shows unread counts on nav items.
+    (function initArticleNotifications() {
+        const ARTICLE_SELECTORS = [
+            '.news-entry',
+            '.changelog-entry',
+            '.event',
+            '.hall-of-fame-entry',
+        ];
+        const STORAGE_KEY = 'jamex-read-articles';
+        const navLinks = Array.from(document.querySelectorAll('.navbar a'));
+        if (!navLinks.length) return;
+        let bulkActionBtn = null;
+
+        function getStoredReadState() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function setStoredReadState(state) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function getArticleKey(pageFile, articleId) {
+            return pageFile + '#' + articleId;
+        }
+
+        function isArticleRead(pageFile, articleId) {
+            return !!getStoredReadState()[getArticleKey(pageFile, articleId)];
+        }
+
+        function setArticleRead(pageFile, articleId, read) {
+            const state = getStoredReadState();
+            const key = getArticleKey(pageFile, articleId);
+            if (read) {
+                state[key] = true;
+            } else {
+                delete state[key];
+            }
+            setStoredReadState(state);
+        }
+
+        function slugify(text) {
+            return text
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function getArticleIds(root) {
+            const usedIds = new Set();
+            return Array.from(root.querySelectorAll(ARTICLE_SELECTORS.join(', ')))
+                .map(article => {
+                    const h2 = article.querySelector('h2');
+                    if (!h2) return null;
+
+                    const slug = slugify(h2.textContent) || ('article-' + Math.random().toString(36).slice(2, 7));
+                    let id = slug;
+                    let suffix = 2;
+                    while (usedIds.has(id)) {
+                        id = slug + '-' + suffix++;
+                    }
+                    usedIds.add(id);
+                    return id;
+                })
+                .filter(Boolean);
+        }
+
+        function updateArticleVisual(article, read) {
+            const h2 = article.querySelector('h2');
+            let marker = h2 ? h2.querySelector('.jx-new-article-marker') : null;
+
+            if (h2 && !read && !marker) {
+                marker = document.createElement('span');
+                marker.className = 'jx-new-article-marker';
+                marker.setAttribute('aria-label', 'Unread article');
+                marker.textContent = ' 🆕';
+                h2.appendChild(marker);
+            } else if (read && marker) {
+                marker.remove();
+            }
+
+            article.classList.toggle('jx-article-read', read);
+            article.classList.toggle('jx-article-unread', !read);
+            article.setAttribute('data-read-state', read ? 'read' : 'unread');
+            article.setAttribute('title', read ? 'Read - click inside to mark unread' : 'Unread - click inside to mark read');
+        }
+
+        function renderBadge(link, count) {
+            let badge = link.querySelector('.jx-nav-notification');
+            if (count <= 0) {
+                if (badge) badge.remove();
+                link.removeAttribute('aria-label');
+                return;
+            }
+
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'jx-nav-notification';
+                link.appendChild(badge);
+            }
+            badge.textContent = count > 99 ? '99+' : String(count);
+
+            const text = link.textContent.replace(/\s*\d+\+?$/, '').trim();
+            link.setAttribute('aria-label', text + ' - ' + count + ' unread article' + (count === 1 ? '' : 's'));
+        }
+
+        function getCurrentArticles() {
+            return Array.from(document.querySelectorAll(ARTICLE_SELECTORS.join(', ')))
+                .filter(article => article.id);
+        }
+
+        function updatePageBulkAction() {
+            if (!bulkActionBtn) return;
+
+            const articles = getCurrentArticles();
+            const readCount = articles.filter(article => isArticleRead(current, article.id)).length;
+            const shouldMarkRead = readCount <= articles.length / 2;
+            bulkActionBtn.textContent = shouldMarkRead ? 'Mark all as read' : 'Mark all as unread';
+            bulkActionBtn.dataset.markRead = shouldMarkRead ? 'true' : 'false';
+        }
+
+        function initPageBulkAction() {
+            const articles = getCurrentArticles();
+            if (!articles.length || bulkActionBtn) return;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'jx-notification-actions';
+
+            bulkActionBtn = document.createElement('button');
+            bulkActionBtn.className = 'jx-notification-action';
+            bulkActionBtn.type = 'button';
+            bulkActionBtn.addEventListener('click', () => {
+                const shouldMarkRead = bulkActionBtn.dataset.markRead === 'true';
+                getCurrentArticles().forEach(article => {
+                    setArticleRead(current, article.id, shouldMarkRead);
+                    updateArticleVisual(article, shouldMarkRead);
+                });
+                updatePageBulkAction();
+                updateNavNotifications();
+            });
+
+            wrap.appendChild(bulkActionBtn);
+
+            const nav = document.querySelector('.navbar');
+            if (nav) {
+                nav.insertAdjacentElement('afterend', wrap);
+            } else {
+                articles[0].insertAdjacentElement('beforebegin', wrap);
+            }
+
+            updatePageBulkAction();
+        }
+
+        function updateCurrentPageArticles() {
+            const articles = getCurrentArticles();
+            articles.forEach(article => {
+                if (!article.id || article.dataset.notificationReady === 'true') return;
+                article.dataset.notificationReady = 'true';
+                updateArticleVisual(article, isArticleRead(current, article.id));
+
+                article.addEventListener('click', event => {
+                    if (event.target.closest('input, textarea, select, label')) return;
+                    const nextRead = !isArticleRead(current, article.id);
+                    setArticleRead(current, article.id, nextRead);
+                    updateArticleVisual(article, nextRead);
+                    updatePageBulkAction();
+                    updateNavNotifications();
+                });
+            });
+            initPageBulkAction();
+        }
+
+        async function getPageArticleIds(pageFile) {
+            if (pageFile === current) {
+                return getArticleIds(document);
+            }
+
+            try {
+                const response = await fetch(pageFile);
+                if (!response.ok) return [];
+                const html = await response.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                return getArticleIds(doc);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function updateNavNotifications() {
+            const readState = getStoredReadState();
+
+            await Promise.all(navLinks.map(async link => {
+                const href = link.getAttribute('href') || '';
+                const pageFile = getPageFile(href);
+                const articleIds = await getPageArticleIds(pageFile);
+                const unreadCount = articleIds.filter(id => !readState[getArticleKey(pageFile, id)]).length;
+                renderBadge(link, unreadCount);
+            }));
+        }
+
+        updateCurrentPageArticles();
+        updateNavNotifications();
+    })();
+
     // =========================================================================
     // --- Jamex Account system ---
     //
