@@ -18,10 +18,11 @@
         const file = path.split('/').pop() || '';
         return file === '' ? 'index.html' : file;
     };
-    const current = getPageFile(window.location.pathname);
+    const normalizePageFile = pageFile => pageFile === 'changelog.html' ? 'feedback.html' : pageFile;
+    const current = normalizePageFile(getPageFile(window.location.pathname));
     document.querySelectorAll('.navbar a').forEach(a => {
         const href = a.getAttribute('href') || '';
-        const hrefFile = getPageFile(href);
+        const hrefFile = normalizePageFile(getPageFile(href));
         if (hrefFile === current) {
             a.classList.add('active');
         }
@@ -41,6 +42,7 @@
     const LIGHT_BG_KEY = 'jamex-light-bg';
     const DARK_BG_KEY = 'jamex-dark-bg';
     const PAGE_THEME_AUTOMATIONS_KEY = 'jamex-page-theme-automations';
+    const READ_ARTICLES_KEY = 'jamex-read-articles';
     const SETTINGS_THEME_PAGE = '__settings__';
     const PAGE_THEME_AUTOMATION_PAGES = [
         { value: 'index.html', label: 'Homepage' },
@@ -69,6 +71,23 @@
         });
         return next;
     };
+    const normalizeReadArticles = value => {
+        if (!value || typeof value !== 'object') return {};
+        const next = {};
+        Object.keys(value).forEach(key => {
+            if (typeof key === 'string' && value[key] === true) {
+                next[key] = true;
+            }
+        });
+        return next;
+    };
+    const readLocalArticleState = () => {
+        try {
+            return normalizeReadArticles(JSON.parse(localStorage.getItem(READ_ARTICLES_KEY) || '{}'));
+        } catch (e) {
+            return {};
+        }
+    };
     const normalizeAccountSettings = value => {
         const raw = value && typeof value === 'object' ? value : {};
         return {
@@ -76,6 +95,7 @@
             lightBg: normalizeLightBg(raw.lightBg),
             darkBg: normalizeDarkBg(raw.darkBg),
             pageThemeAutomations: normalizePageThemeAutomations(raw.pageThemeAutomations),
+            readArticles: normalizeReadArticles(raw.readArticles),
         };
     };
     const readLegacySettings = () => normalizeAccountSettings({
@@ -89,6 +109,7 @@
                 return {};
             }
         })(),
+        readArticles: readLocalArticleState(),
     });
     const isAccountSessionActive = () => !!localStorage.getItem('jamex-password') && !!localStorage.getItem('jamex-username');
     const getCachedAccountSettings = () => {
@@ -110,6 +131,8 @@
         localStorage.setItem(LIGHT_BG_KEY, normalized.lightBg);
         localStorage.setItem(DARK_BG_KEY, normalized.darkBg);
         localStorage.setItem(PAGE_THEME_AUTOMATIONS_KEY, JSON.stringify(normalized.pageThemeAutomations));
+        localStorage.setItem(READ_ARTICLES_KEY, JSON.stringify(normalized.readArticles));
+        document.dispatchEvent(new CustomEvent('jamex-account-settings-updated', { detail: normalized }));
         return normalized;
     };
     const getActiveAccountSettings = () => isAccountSessionActive() ? getCachedAccountSettings() : readLegacySettings();
@@ -147,6 +170,13 @@
     const getDarkBackgroundPreference = () => {
         return getActiveAccountSettings().darkBg;
     };
+
+    function mergeReadArticleStates(primary, fallback) {
+        return {
+            ...normalizeReadArticles(fallback),
+            ...normalizeReadArticles(primary),
+        };
+    }
 
     const applyBackgroundPreferences = () => {
         document.body.dataset.lightBg = getLightBackgroundPreference();
@@ -284,6 +314,12 @@
 
     // --- search helper with highlighting ---
     // filterSelectId (optional): ID of a <select> whose value is a tag string
+    function updateFilteredItemDisplay(el) {
+        const hiddenBySearch = el.dataset.searchHidden === 'true';
+        const hiddenByReadFilter = el.dataset.readFilterHidden === 'true';
+        el.style.display = hiddenBySearch || hiddenByReadFilter ? 'none' : '';
+    }
+
     function initSearch(inputId, itemSelector, filterSelectId) {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -315,13 +351,19 @@
                 const tagMatch = !tag || tagText.includes(tag);
                 const matches = textMatch && tagMatch;
 
-                el.style.display = matches ? '' : 'none';
+                if (matches) {
+                    delete el.dataset.searchHidden;
+                } else {
+                    el.dataset.searchHidden = 'true';
+                }
+                updateFilteredItemDisplay(el);
                 if (matches) visibleCount++;
 
                 if (q && matches) highlightInNode(el, q);
             });
 
             noResultsMsg.style.display = ((q || tag) && visibleCount === 0) ? '' : 'none';
+            document.dispatchEvent(new CustomEvent('jamex-article-visibility-updated'));
         }
 
         input.addEventListener('input', runFilter);
@@ -510,22 +552,25 @@
             '.event',
             '.hall-of-fame-entry',
         ];
-        const STORAGE_KEY = 'jamex-read-articles';
         const navLinks = Array.from(document.querySelectorAll('.navbar a'));
         if (!navLinks.length) return;
         let bulkActionBtn = null;
+        let readFilterSelect = null;
+        let readFilterEmptyMsg = null;
 
         function getStoredReadState() {
-            try {
-                const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                return parsed && typeof parsed === 'object' ? parsed : {};
-            } catch (e) {
-                return {};
-            }
+            return normalizeReadArticles(getActiveAccountSettings().readArticles);
         }
 
         function setStoredReadState(state) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            const normalized = normalizeReadArticles(state);
+            localStorage.setItem(READ_ARTICLES_KEY, JSON.stringify(normalized));
+            if (isAccountSessionActive()) {
+                persistAccountSettings({
+                    ...getActiveAccountSettings(),
+                    readArticles: normalized,
+                });
+            }
         }
 
         function getArticleKey(pageFile, articleId) {
@@ -591,7 +636,11 @@
             article.classList.toggle('jx-article-read', read);
             article.classList.toggle('jx-article-unread', !read);
             article.setAttribute('data-read-state', read ? 'read' : 'unread');
-            article.setAttribute('title', read ? 'Read - click inside to mark unread' : 'Unread - click inside to mark read');
+            article.removeAttribute('title');
+            if (h2) {
+                h2.setAttribute('title', read ? 'Read - click title to mark unread' : 'Unread - click title to mark read');
+                h2.setAttribute('aria-label', h2.textContent.trim() + ' - ' + (read ? 'read' : 'unread') + ', click to mark ' + (read ? 'unread' : 'read'));
+            }
         }
 
         function renderBadge(link, count) {
@@ -628,6 +677,40 @@
             bulkActionBtn.dataset.markRead = shouldMarkRead ? 'true' : 'false';
         }
 
+        function applyReadFilter() {
+            const filter = readFilterSelect ? readFilterSelect.value : 'all';
+            getCurrentArticles().forEach(article => {
+                const read = isArticleRead(current, article.id);
+                const shouldHide = (filter === 'read' && !read) || (filter === 'unread' && read);
+                if (shouldHide) {
+                    article.dataset.readFilterHidden = 'true';
+                } else {
+                    delete article.dataset.readFilterHidden;
+                }
+                updateFilteredItemDisplay(article);
+            });
+            updateReadFilterEmptyMessage();
+        }
+
+        function updateReadFilterEmptyMessage() {
+            if (!readFilterEmptyMsg || !readFilterSelect) return;
+
+            const filter = readFilterSelect.value;
+            const visibleCount = getCurrentArticles()
+                .filter(article => getComputedStyle(article).display !== 'none')
+                .length;
+
+            if (filter === 'read' && visibleCount === 0) {
+                readFilterEmptyMsg.textContent = 'No read articles found';
+                readFilterEmptyMsg.style.display = '';
+            } else if (filter === 'unread' && visibleCount === 0) {
+                readFilterEmptyMsg.textContent = 'No unread articles found';
+                readFilterEmptyMsg.style.display = '';
+            } else {
+                readFilterEmptyMsg.style.display = 'none';
+            }
+        }
+
         function initPageBulkAction() {
             const articles = getCurrentArticles();
             if (!articles.length || bulkActionBtn) return;
@@ -645,19 +728,43 @@
                     updateArticleVisual(article, shouldMarkRead);
                 });
                 updatePageBulkAction();
+                applyReadFilter();
                 updateNavNotifications();
             });
 
+            readFilterSelect = document.createElement('select');
+            readFilterSelect.className = 'jx-notification-filter';
+            readFilterSelect.setAttribute('aria-label', 'Filter articles by read state');
+            [
+                { value: 'all', label: 'Show All' },
+                { value: 'read', label: 'Show Read' },
+                { value: 'unread', label: 'Show Unread' },
+            ].forEach(optionConfig => {
+                const option = document.createElement('option');
+                option.value = optionConfig.value;
+                option.textContent = optionConfig.label;
+                readFilterSelect.appendChild(option);
+            });
+            readFilterSelect.addEventListener('change', applyReadFilter);
+
             wrap.appendChild(bulkActionBtn);
+            wrap.appendChild(readFilterSelect);
+
+            readFilterEmptyMsg = document.createElement('div');
+            readFilterEmptyMsg.className = 'jx-read-filter-empty';
+            readFilterEmptyMsg.style.display = 'none';
 
             const nav = document.querySelector('.navbar');
             if (nav) {
                 nav.insertAdjacentElement('afterend', wrap);
+                wrap.insertAdjacentElement('afterend', readFilterEmptyMsg);
             } else {
                 articles[0].insertAdjacentElement('beforebegin', wrap);
+                wrap.insertAdjacentElement('afterend', readFilterEmptyMsg);
             }
 
             updatePageBulkAction();
+            applyReadFilter();
         }
 
         function updateCurrentPageArticles() {
@@ -667,13 +774,29 @@
                 article.dataset.notificationReady = 'true';
                 updateArticleVisual(article, isArticleRead(current, article.id));
 
-                article.addEventListener('click', event => {
-                    if (event.target.closest('input, textarea, select, label')) return;
+                const h2 = article.querySelector('h2');
+                if (!h2) return;
+
+                const toggleArticleRead = () => {
                     const nextRead = !isArticleRead(current, article.id);
                     setArticleRead(current, article.id, nextRead);
                     updateArticleVisual(article, nextRead);
                     updatePageBulkAction();
+                    applyReadFilter();
                     updateNavNotifications();
+                };
+
+                h2.setAttribute('role', 'button');
+                h2.setAttribute('tabindex', '0');
+                h2.addEventListener('click', event => {
+                    if (event.target.closest('a, button, input, textarea, select, label')) return;
+                    toggleArticleRead();
+                });
+                h2.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    if (event.target.closest('a, button, input, textarea, select, label')) return;
+                    event.preventDefault();
+                    toggleArticleRead();
                 });
             });
             initPageBulkAction();
@@ -700,7 +823,7 @@
 
             await Promise.all(navLinks.map(async link => {
                 const href = link.getAttribute('href') || '';
-                const pageFile = getPageFile(href);
+                const pageFile = normalizePageFile(getPageFile(href));
                 const articleIds = await getPageArticleIds(pageFile);
                 const unreadCount = articleIds.filter(id => !readState[getArticleKey(pageFile, id)]).length;
                 renderBadge(link, unreadCount);
@@ -709,6 +832,13 @@
 
         updateCurrentPageArticles();
         updateNavNotifications();
+        document.addEventListener('jamex-account-settings-updated', () => {
+            updateCurrentPageArticles();
+            updatePageBulkAction();
+            applyReadFilter();
+            updateNavNotifications();
+        });
+        document.addEventListener('jamex-article-visibility-updated', updateReadFilterEmptyMessage);
     })();
 
     // =========================================================================
@@ -738,7 +868,23 @@
             localStorage.setItem('jamex-email', email);
             localStorage.setItem('jamex-account-email-' + email, username);
         }
-        cacheAccountSettings(settings || getCachedAccountSettings());
+        const migrationKey = 'jamex-read-articles-migrated-' + username;
+        const hadRemoteSettings = !!(settings && typeof settings === 'object');
+        const remoteSettings = normalizeAccountSettings(settings || getCachedAccountSettings());
+        const localReadArticles = readLocalArticleState();
+        const shouldMigrateLocalReads = localStorage.getItem(migrationKey) !== 'true';
+        const nextSettings = normalizeAccountSettings({
+            ...remoteSettings,
+            readArticles: shouldMigrateLocalReads
+                ? mergeReadArticleStates(remoteSettings.readArticles, localReadArticles)
+                : remoteSettings.readArticles,
+        });
+
+        cacheAccountSettings(nextSettings);
+        if (shouldMigrateLocalReads) {
+            localStorage.setItem(migrationKey, 'true');
+            if (hadRemoteSettings) queueAccountSettingsSync(nextSettings);
+        }
         setThemeAutomationContext(activeThemePage || current);
     }
 

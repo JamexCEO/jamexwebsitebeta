@@ -332,6 +332,9 @@ body.dark th, body.dark td {
 
 .jx-notification-actions {
 	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
 	justify-content: center;
 	margin: 8px 0 18px;
 }
@@ -355,8 +358,42 @@ body.dark th, body.dark td {
 	transform: scale(1.05);
 }
 
+.jx-notification-filter {
+	padding: 8px 10px;
+	font-size: 16px;
+	border: 2px solid #ccc;
+	border-radius: 4px;
+	background-color: white;
+	color: black;
+	cursor: pointer;
+	transition: border-color 0.15s ease;
+	flex-shrink: 0;
+}
+
+.jx-notification-filter:focus {
+	outline: none;
+	border-color: red;
+}
+
+.jx-read-filter-empty {
+	text-align: center;
+	padding: 20px;
+	color: #999;
+	font-size: 16px;
+}
+
 body.dark .jx-notification-action {
 	border-color: #000;
+}
+
+body.dark .jx-notification-filter {
+	background-color: white;
+	color: black;
+	border-color: #ccc;
+}
+
+body.dark .jx-notification-filter:focus {
+	border-color: red;
 }
 
 .jx-new-article-marker {
@@ -366,8 +403,8 @@ body.dark .jx-notification-action {
 	vertical-align: 0.08em;
 }
 
-.jx-article-read:hover,
-.jx-article-unread:hover {
+.jx-article-read h2:hover,
+.jx-article-unread h2:hover {
 	cursor: pointer;
 }
 
