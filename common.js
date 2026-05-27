@@ -673,7 +673,7 @@
             const articles = getCurrentArticles();
             const readCount = articles.filter(article => isArticleRead(current, article.id)).length;
             const shouldMarkRead = readCount <= articles.length / 2;
-            bulkActionBtn.textContent = shouldMarkRead ? 'Mark all as read' : 'Mark all as unread';
+            bulkActionBtn.textContent = shouldMarkRead ? '👁️ Mark all as read' : '✉️ Mark all as unread';
             bulkActionBtn.dataset.markRead = shouldMarkRead ? 'true' : 'false';
         }
 
